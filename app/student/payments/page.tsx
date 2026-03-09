@@ -215,9 +215,9 @@ function PaymentsContent() {
   const [ratings, setRatings]         = useState<Rating[]>([]);
   const [disclosureBooking, setDisclosureBooking] = useState<Booking | null>(null);
 
-  const successBookingId = searchParams.get("booking");
-  const wasSuccess   = searchParams.get("success") === "1";
-  const wasCancelled = searchParams.get("cancelled") === "1";
+  const successBookingId = searchParams?.get("booking") ?? null;
+  const wasSuccess   = searchParams?.get("success") === "1";
+  const wasCancelled = searchParams?.get("cancelled") === "1";
 
   useEffect(() => {
     fetch("/api/student/bookings", { cache: "no-store" })

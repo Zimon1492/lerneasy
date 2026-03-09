@@ -154,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.json({
       success: true,
       message: `${pastCanceled.count} past-unaccepted canceled, ${updated.count} expired canceled, ${upcoming.length} reminders sent, ${deletedLogs.count} error logs deleted.`,
-      canceledBookings: [...pastUnaccepted.map((b) => b.id), ...expired.map((b) => b.id)],
+      canceledBookings: [...pastUnaccepted.map((b: { id: string }) => b.id), ...expired.map((b: { id: string }) => b.id)],
     });
   } catch (err: any) {
     logError("pages/api/cron/acceptDeadline", err).catch(() => {});

@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // 2) Status auf "paid" + Availability-Slot freigeben (in Transaction)
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.booking.update({
         where: { id: bookingId },
         data: { status: "paid", stripePaymentIntentId: pi.id },

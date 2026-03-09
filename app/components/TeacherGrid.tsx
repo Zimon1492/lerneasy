@@ -23,8 +23,8 @@ export default function TeacherGrid({ teachers, onSelect }: Props) {
           <h3 className="font-semibold text-lg">{t.name}</h3>
           <p className="text-sm text-gray-600">{t.subject}</p>
           <div className="text-yellow-400 mt-2">
-            {"★".repeat(t.rating)}
-            {"☆".repeat(5 - t.rating)}
+            {"★".repeat((t as any).rating ?? 0)}
+            {"☆".repeat(5 - ((t as any).rating ?? 0))}
           </div>
         </button>
       ))}

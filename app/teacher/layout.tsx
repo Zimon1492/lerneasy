@@ -78,7 +78,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
           <div className="hidden md:flex items-center gap-5 text-sm font-medium">
             {NAV_ITEMS.map(({ href, label, badge }) => {
               const count = getBadge(badge);
-              const active = pathname.startsWith(href);
+              const active = pathname?.startsWith(href) ?? false;
               return (
                 <Link
                   key={href}
@@ -127,7 +127,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             </div>
             {NAV_ITEMS.map(({ href, label, badge }) => {
               const count = getBadge(badge);
-              const active = pathname.startsWith(href);
+              const active = pathname?.startsWith(href) ?? false;
               return (
                 <Link
                   key={href}
@@ -155,7 +155,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         )}
       </nav>
 
-      <main className={`flex-1 w-full ${pathname.startsWith("/teacher/chat") ? "" : "p-4 md:p-6"}`}>{children}</main>
+      <main className={`flex-1 w-full ${pathname?.startsWith("/teacher/chat") ? "" : "p-4 md:p-6"}`}>{children}</main>
       <Footer />
     </div>
   );

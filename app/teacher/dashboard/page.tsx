@@ -253,25 +253,25 @@ export default function TeacherDashboard() {
     document.body.appendChild(dialog);
 
     if (canAct) {
-      dialog.querySelector("#acceptBtn")!.onclick = async () => {
+      (dialog.querySelector("#acceptBtn") as HTMLElement).onclick = async () => {
         await acceptBooking(booking.id);
         dialog.remove();
       };
 
-      dialog.querySelector("#declineBtn")!.onclick = async () => {
+      (dialog.querySelector("#declineBtn") as HTMLElement).onclick = async () => {
         await declineBooking(booking.id);
         dialog.remove();
       };
     }
 
     if (canCancelPaid) {
-      dialog.querySelector("#cancelPaidBtn")!.onclick = async () => {
+      (dialog.querySelector("#cancelPaidBtn") as HTMLElement).onclick = async () => {
         dialog.remove();
         await cancelPaidBooking(booking.id);
       };
     }
 
-    dialog.querySelector("#closeBtn")!.onclick = () => dialog.remove();
+    (dialog.querySelector("#closeBtn") as HTMLElement).onclick = () => dialog.remove();
   }
 
   // ------------------------------------------------------------------

@@ -67,7 +67,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
 
-    const email = normalizeEmail(body?.email as string | undefined);
+    const email = normalizeEmail((body?.email ?? "") as string);
     const subjectId = body?.subjectId as string | undefined;
 
     const schoolTrack = body?.schoolTrack as TrackValue | undefined;

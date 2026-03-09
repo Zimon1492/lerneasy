@@ -1,9 +1,7 @@
 // app/api/admin/applications/file/route.ts
-// Serves uploaded applicant PDFs only to authenticated admins (DSGVO Art. 5, 32)
+// Proxies uploaded applicant PDFs only to authenticated admins (DSGVO Art. 5, 32)
 import { NextResponse } from "next/server";
 import { isAdminAuthed } from "@/app/api/admin/_auth";
-import { promises as fs } from "fs";
-import path from "path";
 
 export const runtime = "nodejs";
 
@@ -13,21 +11,22 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
-  const name = searchParams.get("name") ?? "";
+  const url = searchParams.get("name") ?? "";
 
-  // Prevent path traversal
-  if (!name || /[/\\.]\./.test(name) || name.includes("/") || name.includes("\\")) {
-    return new NextResponse("Ungültiger Dateiname.", { status: 400 });
+  // Only allow fetching from Vercel Blob URLs
+  if (!url.startsWith("https://") || !url.includes("vercel-storage.com")) {
+    return new NextResponse("Ungültige Datei-URL.", { status: 400 });
   }
 
-  const filePath = path.join(process.cwd(), "private-uploads", name);
-
   try {
-    const data = await fs.readFile(filePath);
+    const res = await fetch(url);
+    if (!res.ok) return new NextResponse("Datei nicht gefunden.", { status: 404 });
+
+    const data = await res.arrayBuffer();
     return new NextResponse(data, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${name}"`,
+        "Content-Disposition": `inline; filename="bewerbung.pdf"`,
         "Cache-Control": "no-store, no-cache",
         "X-Content-Type-Options": "nosniff",
       },

@@ -1,8 +1,7 @@
 // app/api/teachers/apply/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
-import { promises as fs } from "fs";
-import path from "path";
+import { put } from "@vercel/blob";
 import nodemailer from "nodemailer";
 import { logError } from "@/app/lib/logError";
 import { rateLimit } from "@/lib/rateLimit";
@@ -45,14 +44,9 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Nur PDF-Dateien erlaubt." }, { status: 400 });
       }
 
-      const bytes = Buffer.from(await file.arrayBuffer());
-      // Store outside public/ to prevent unauthenticated access (DSGVO Art. 5, 32)
-      const uploadDir = path.join(process.cwd(), "private-uploads");
-      await fs.mkdir(uploadDir, { recursive: true });
-
-      const safeName = `${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
-      filePath = safeName; // store only the filename; served via /api/admin/applications/file
-      await fs.writeFile(path.join(uploadDir, safeName), bytes);
+      const safeName = `applications/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
+      const blob = await put(safeName, file, { access: "public" });
+      filePath = blob.url; // store blob URL; served via /api/admin/applications/file
     }
 
     // In DB speichern (upsert: bestehende Bewerbung mit gleicher E-Mail wird aktualisiert)

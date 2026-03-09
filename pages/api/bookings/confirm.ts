@@ -7,6 +7,7 @@ import { prisma } from "../../../lib/prisma";
 import { stripe } from "../../../lib/stripe";
 import nodemailer from "nodemailer";
 import { logError } from "@/app/lib/logError";
+import { escapeHtml } from "@/app/lib/escapeHtml";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
@@ -72,8 +73,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         booking.student.email,
         "Dein Termin wurde bestätigt!",
         `<h2>Dein Nachhilfetermin wurde bestätigt!</h2>
-         <p>Hallo ${booking.student.name || ""},</p>
-         <p>Dein Lehrer <b>${booking.teacher?.name}</b> hat deinen Termin angenommen.</p>
+         <p>Hallo ${escapeHtml(booking.student.name || "")},</p>
+         <p>Dein Lehrer <b>${escapeHtml(booking.teacher?.name ?? "")}</b> hat deinen Termin angenommen.</p>
          <p><b>Termin:</b> ${new Date(booking.start).toLocaleString("de-AT")} &ndash; ${new Date(booking.end).toLocaleTimeString("de-AT")}</p>
          <p>Der Betrag von <b>&euro;${(booking.priceCents / 100).toFixed(2)}</b> wurde von deiner Karte abgebucht.</p>
          <p>Viele Grüße,<br/>dein LernApp-Team</p>`

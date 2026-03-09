@@ -5,6 +5,7 @@ import { prisma } from "../../../lib/prisma";
 import { stripe } from "../../../lib/stripe";
 import nodemailer from "nodemailer";
 import { logError } from "@/app/lib/logError";
+import { escapeHtml } from "@/app/lib/escapeHtml";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // On Vercel, CRON_SECRET is set and Vercel sends it as a Bearer token.
@@ -39,8 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           booking.student.email,
           "Dein Termin wurde automatisch abgelehnt",
           `<h2>Dein Nachhilfetermin wurde automatisch storniert</h2>
-           <p>Hallo ${booking.student.name || ""},</p>
-           <p>Dein Terminwunsch bei <b>${booking.teacher?.name || "deinem Lehrer"}</b> wurde vom Lehrer nicht rechtzeitig angenommen und wurde daher automatisch storniert.</p>
+           <p>Hallo ${escapeHtml(booking.student.name || "")},</p>
+           <p>Dein Terminwunsch bei <b>${escapeHtml(booking.teacher?.name || "deinem Lehrer")}</b> wurde vom Lehrer nicht rechtzeitig angenommen und wurde daher automatisch storniert.</p>
            <p>Deine Zahlungsdaten wurden vollständig aus unserem System gelöscht.</p>
            <p>Bitte buche einen neuen Termin.</p>
            <p>Viele Grüße,<br/>dein LernApp-Team</p>`
@@ -85,8 +86,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           booking.student.email,
           "Dein Termin ist abgelaufen",
           `<h2>Dein Nachhilfetermin wurde automatisch storniert</h2>
-           <p>Hallo ${booking.student.name || ""},</p>
-           <p>Dein Terminwunsch bei <b>${booking.teacher?.name || "deinem Lehrer"}</b> wurde innerhalb von 6 Tagen nicht bestätigt und wurde deshalb automatisch storniert.</p>
+           <p>Hallo ${escapeHtml(booking.student.name || "")},</p>
+           <p>Dein Terminwunsch bei <b>${escapeHtml(booking.teacher?.name || "deinem Lehrer")}</b> wurde innerhalb von 6 Tagen nicht bestätigt und wurde deshalb automatisch storniert.</p>
            <p>Deine Zahlungsdaten wurden vollständig aus unserem System gelöscht.</p>
            <p>Bitte buche einen neuen Termin.</p>
            <p>Viele Grüße,<br/>dein LernApp-Team</p>`
@@ -128,8 +129,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           booking.student.email,
           "Erinnerung: Deine Nachhilfestunde morgen",
           `<h2>Erinnerung an deinen Termin</h2>
-           <p>Hallo ${booking.student.name || ""},</p>
-           <p>Deine Nachhilfestunde bei <b>${booking.teacher?.name || "deinem Lehrer"}</b> findet morgen am <b>${startStr}</b> statt.</p>
+           <p>Hallo ${escapeHtml(booking.student.name || "")},</p>
+           <p>Deine Nachhilfestunde bei <b>${escapeHtml(booking.teacher?.name || "deinem Lehrer")}</b> findet morgen am <b>${escapeHtml(startStr)}</b> statt.</p>
            <p>Viele Grüße,<br/>dein LernApp-Team</p>`
         ).catch(() => {});
       }
@@ -138,8 +139,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           booking.teacher.email,
           "Erinnerung: Nachhilfestunde morgen",
           `<h2>Erinnerung an deinen Termin</h2>
-           <p>Hallo ${booking.teacher.name || ""},</p>
-           <p>Deine Nachhilfestunde mit <b>${booking.student?.name || "einem Schüler"}</b> findet morgen am <b>${startStr}</b> statt.</p>
+           <p>Hallo ${escapeHtml(booking.teacher.name || "")},</p>
+           <p>Deine Nachhilfestunde mit <b>${escapeHtml(booking.student?.name || "einem Schüler")}</b> findet morgen am <b>${escapeHtml(startStr)}</b> statt.</p>
            <p>Viele Grüße,<br/>dein LernApp-Team</p>`
         ).catch(() => {});
       }

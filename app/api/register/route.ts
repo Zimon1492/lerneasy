@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 import { logError } from "@/app/lib/logError";
+import { rateLimit } from "@/lib/rateLimit";
 
 type SchoolTrack = "AHS" | "BHS";
 type SchoolLevel = "UNTERSTUFE" | "OBERSTUFE";
@@ -25,6 +26,14 @@ type SchoolForm =
   | "OTHER";
 
 export async function POST(req: Request) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!rateLimit(`register:${ip}`, 5, 60 * 60 * 1000)) {
+    return NextResponse.json(
+      { error: "Zu viele Registrierungsversuche. Bitte versuche es in einer Stunde erneut." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await req.json();
 

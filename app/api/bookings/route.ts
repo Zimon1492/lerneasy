@@ -6,6 +6,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { calcPriceCents } from "@/app/lib/pricing";
 import { getPlatformSettings } from "@/app/lib/settings";
 import { getStudentSession } from "@/app/lib/auth";
+import { escapeHtml } from "@/app/lib/escapeHtml";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -225,7 +226,7 @@ async function sendWelcomeMail(to: string, name: string, setPasswordUrl: string)
     to,
     subject: "Willkommen bei LernApp – Passwort festlegen",
     html: `
-      <h2>Willkommen bei LernApp${name ? `, ${name}` : ""}!</h2>
+      <h2>Willkommen bei LernApp${name ? `, ${escapeHtml(name)}` : ""}!</h2>
       <p>Du hast soeben eine Buchung bei uns erstellt. Wir haben automatisch ein Konto für dich angelegt.</p>
       <p>Bitte lege dein Passwort fest, um dich einzuloggen und deine Buchungen zu verwalten:</p>
       <p><a href="${setPasswordUrl}" style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:10px 0">Passwort festlegen</a></p>

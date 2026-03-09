@@ -82,13 +82,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       break;
 
 
-    case "payment_intent.succeeded":
-      console.log("💸 Zahlung erfolgreich");
+    case "payment_intent.succeeded": {
+      const pi = event.data.object as Stripe.PaymentIntent;
+      if (pi.transfer_group) {
+        await prisma.booking.updateMany({
+          where: {
+            id: pi.transfer_group,
+            status: { notIn: ["paid", "declined", "student_cancelled", "teacher_cancelled", "canceled_by_system"] },
+          },
+          data: { status: "paid", stripePaymentIntentId: pi.id },
+        });
+      }
       break;
+    }
 
-    case "payment_intent.payment_failed":
-      console.log("❌ Zahlung fehlgeschlagen");
+    case "payment_intent.payment_failed": {
+      const pi = event.data.object as Stripe.PaymentIntent;
+      if (pi.transfer_group) {
+        await prisma.booking.updateMany({
+          where: {
+            id: pi.transfer_group,
+            status: { notIn: ["paid", "declined", "student_cancelled", "teacher_cancelled", "canceled_by_system"] },
+          },
+          data: { status: "payment_failed" },
+        });
+      }
       break;
+    }
 
     default:
       console.log(`Unhandled event type ${event.type}`);

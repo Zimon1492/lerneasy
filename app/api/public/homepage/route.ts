@@ -6,7 +6,14 @@ export const runtime = "nodejs";
 export async function GET() {
   const [teachers, ratings] = await Promise.all([
     prisma.teacher.findMany({
-      include: { ratings: { select: { stars: true } } },
+      select: {
+        id: true,
+        name: true,
+        subject: true,
+        profilePicture: true,
+        ratings: { select: { stars: true } },
+        // email intentionally omitted — not needed on homepage
+      },
     }),
     prisma.teacherRating.findMany({
       where: { comment: { not: null } },
@@ -24,7 +31,7 @@ export async function GET() {
     id: t.id,
     name: t.name,
     subject: t.subject,
-    profilePicture: t.profilePicture ?? null,
+    profilePicture: (t as any).profilePicture ?? null,
     avgRating:
       t.ratings.length > 0
         ? Math.round((t.ratings.reduce((s, r) => s + r.stars, 0) / t.ratings.length) * 10) / 10

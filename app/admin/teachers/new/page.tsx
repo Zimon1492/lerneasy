@@ -42,6 +42,7 @@ function NewTeacherForm() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!params) return;
     setName(params.get("name") ?? "");
     setEmail(params.get("email") ?? "");
     setSubject(params.get("subject") ?? "");

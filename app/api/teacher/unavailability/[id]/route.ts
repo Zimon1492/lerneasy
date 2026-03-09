@@ -9,12 +9,12 @@ export const runtime = "nodejs";
  */
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { searchParams } = new URL(req.url);
     const email = (searchParams.get("email") || "").trim().toLowerCase();
-    const id = params.id;
+    const { id } = await params;
 
     if (!email) {
       return NextResponse.json({ error: "email fehlt" }, { status: 400 });

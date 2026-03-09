@@ -4,7 +4,7 @@ import prisma from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 import { logError } from "@/app/lib/logError";
 
-type SchoolTrack = "AHS" | "BHS" | "OTHER";
+type SchoolTrack = "AHS" | "BHS";
 type SchoolLevel = "UNTERSTUFE" | "OBERSTUFE";
 
 // Muss zu deinem Prisma enum SchoolForm passen:

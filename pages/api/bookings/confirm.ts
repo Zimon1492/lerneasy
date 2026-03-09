@@ -39,16 +39,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Zahlungsmethode noch nicht gespeichert." });
     }
 
-    // 1) Karte sofort belasten
-    const pi = await stripe.paymentIntents.create({
-      amount: booking.priceCents,
-      currency: booking.currency,
-      customer: booking.stripeCustomerId!,
-      payment_method: booking.stripePaymentMethodId!,
-      off_session: true,
-      confirm: true,
-      transfer_group: booking.id,
-    });
+    // 1) Karte sofort belasten (idempotency key verhindert Doppelabbuchungen bei Netzwerkfehlern)
+    const pi = await stripe.paymentIntents.create(
+      {
+        amount: booking.priceCents,
+        currency: booking.currency,
+        customer: booking.stripeCustomerId!,
+        payment_method: booking.stripePaymentMethodId!,
+        off_session: true,
+        confirm: true,
+        transfer_group: booking.id,
+      },
+      { idempotencyKey: `confirm-${bookingId}` }
+    );
 
     // 2) Status auf "paid" + Availability-Slot freigeben (in Transaction)
     await prisma.$transaction(async (tx: any) => {

@@ -12,8 +12,8 @@ export async function GET() {
       select: {
         id: true,
         name: true,
-        email: true,
         subject: true,
+        // email intentionally omitted from public list to prevent enumeration
       },
       orderBy: { name: "asc" },
     });

@@ -5,6 +5,7 @@ import { logError } from "@/app/lib/logError";
 import { rateLimit } from "@/lib/rateLimit";
 import { calcPriceCents } from "@/app/lib/pricing";
 import { getPlatformSettings } from "@/app/lib/settings";
+import { getStudentSession } from "@/app/lib/auth";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
@@ -37,6 +38,15 @@ export async function POST(req: Request) {
 
     // ✅ vom Frontend kommt availabilityId bereits
     const availabilityId = body?.availabilityId as string | undefined;
+
+    // If a student session exists, the email must match — prevents impersonation
+    const studentSession = await getStudentSession();
+    if (studentSession && studentSession.email !== studentEmail) {
+      return NextResponse.json(
+        { error: "Du kannst keine Buchung für eine andere E-Mail-Adresse erstellen." },
+        { status: 403 }
+      );
+    }
 
     if (!teacherId || !studentEmail || !start || !end) {
       return NextResponse.json(

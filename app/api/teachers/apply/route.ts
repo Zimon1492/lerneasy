@@ -5,6 +5,7 @@ import { put } from "@vercel/blob";
 import nodemailer from "nodemailer";
 import { logError } from "@/app/lib/logError";
 import { rateLimit } from "@/lib/rateLimit";
+import { escapeHtml } from "@/app/lib/escapeHtml";
 
 export const runtime = "nodejs";
 
@@ -76,10 +77,10 @@ export async function POST(req: Request) {
       subject: "Neue Lehrerbewerbung erhalten",
       html: `
         <h2>Neue Lehrerbewerbung</h2>
-        <p><b>Name:</b> ${name}</p>
-        <p><b>E-Mail:</b> ${email}</p>
-        <p><b>Fach:</b> ${subject || "kein Fach angegeben"}</p>
-        <p><b>Motivation:</b><br>${letter}</p>
+        <p><b>Name:</b> ${escapeHtml(name)}</p>
+        <p><b>E-Mail:</b> ${escapeHtml(email)}</p>
+        <p><b>Fach:</b> ${escapeHtml(subject || "kein Fach angegeben")}</p>
+        <p><b>Motivation:</b><br>${escapeHtml(letter).replace(/\n/g, "<br>")}</p>
         ${
           filePath
             ? `<p><b>Datei:</b> <a href="${baseUrl}/api/admin/applications/file?name=${encodeURIComponent(filePath)}">PDF ansehen (Admin-Login erforderlich)</a></p>`
@@ -94,10 +95,10 @@ export async function POST(req: Request) {
       to: email,
       subject: "Deine Bewerbung bei LernApp ist eingegangen",
       html: `
-        <h2>Danke für deine Bewerbung, ${name}!</h2>
+        <h2>Danke für deine Bewerbung, ${escapeHtml(name)}!</h2>
         <p>Wir haben deine Unterlagen erhalten und melden uns so schnell wie möglich bei dir.</p>
-        <p><b>E-Mail:</b> ${email}</p>
-        <p><b>Fach:</b> ${subject || "kein Fach angegeben"}</p>
+        <p><b>E-Mail:</b> ${escapeHtml(email)}</p>
+        <p><b>Fach:</b> ${escapeHtml(subject || "kein Fach angegeben")}</p>
         <p>Viele Grüße,<br/>dein LernApp-Team</p>
       `,
     });

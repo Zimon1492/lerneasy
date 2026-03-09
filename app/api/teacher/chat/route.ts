@@ -1,29 +1,25 @@
 // app/api/teacher/chat/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
+import { getTeacherSession } from "@/app/lib/auth";
 import { logError } from "@/app/lib/logError";
+
+export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const email = searchParams.get("email");
-
-    if (!email) {
-      return NextResponse.json(
-        { error: "Email fehlt" },
-        { status: 400 }
-      );
+    const session = await getTeacherSession();
+    if (!session) {
+      return NextResponse.json({ error: "Nicht eingeloggt." }, { status: 401 });
     }
 
+    // Use the authenticated session email — ignore any email query param
     const teacher = await prisma.teacher.findUnique({
-      where: { email },
+      where: { email: session.email },
     });
 
     if (!teacher) {
-      return NextResponse.json(
-        { error: "Lehrer nicht gefunden" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Lehrer nicht gefunden" }, { status: 404 });
     }
 
     const chats = await prisma.chat.findMany({
@@ -34,10 +30,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ chats });
   } catch (err) {
     logError("app/api/teacher/chat GET", err).catch(() => {});
-    console.error("GET /api/teacher/chat error:", err);
-    return NextResponse.json(
-      { error: "Serverfehler" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
   }
 }

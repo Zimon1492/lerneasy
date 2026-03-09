@@ -5,6 +5,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { isAdminAuthed } from "@/app/api/admin/_auth";
 import { logError } from "@/app/lib/logError";
+import { escapeHtml } from "@/app/lib/escapeHtml";
 
 export const runtime = "nodejs";
 
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E-Mail bereits vergeben." }, { status: 409 });
     }
 
-    const tempPassword = Math.random().toString(36).slice(-10);
+    const tempPassword = crypto.randomBytes(16).toString("hex");
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     const created = await prisma.teacher.create({
@@ -92,9 +93,9 @@ export async function POST(req: Request) {
       from: process.env.FROM_EMAIL,
       to: created.email,
       subject: "Willkommen bei LernApp – Passwort festlegen",
-      html: `<h2>Willkommen, ${created.name}!</h2>
+      html: `<h2>Willkommen, ${escapeHtml(created.name)}!</h2>
         <p>Klicke auf den Link um dein Passwort festzulegen:</p>
-        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p><a href="${resetUrl}">${escapeHtml(resetUrl)}</a></p>
         <p>Dieser Link ist 24 Stunden gültig.</p>`,
     });
 

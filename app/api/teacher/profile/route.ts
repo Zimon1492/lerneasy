@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
+import { getTeacherSession } from "@/app/lib/auth";
 import { logError } from "@/app/lib/logError";
 
 export const runtime = "nodejs";
 
+/**
+ * GET /api/teacher/profile?email=...
+ * Public fields returned for everyone.
+ * Sensitive fields (address, taxNumber) only returned to the authenticated teacher themselves.
+ */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -21,12 +27,13 @@ export async function GET(req: Request) {
         name: true,
         subject: true,
         profilePicture: true,
-        address: true,
         description: true,
-        taxNumber: true,
-        unterstufeOnly: true,
         schoolTrack: true,
         allowedForms: true,
+        unterstufeOnly: true,
+        // sensitive — only for own profile
+        address: true,
+        taxNumber: true,
         ratings: { select: { stars: true } },
       },
     });
@@ -40,10 +47,20 @@ export async function GET(req: Request) {
         ? teacher.ratings.reduce((s, r) => s + r.stars, 0) / teacher.ratings.length
         : null;
 
-    return NextResponse.json({
-      ok: true,
-      data: { ...teacher, avgRating, ratingCount: teacher.ratings.length },
-    });
+    // Only expose sensitive fields to the authenticated teacher themselves
+    const session = await getTeacherSession();
+    const isSelf = session?.email === teacher.email;
+
+    const data = {
+      ...teacher,
+      avgRating,
+      ratingCount: teacher.ratings.length,
+      // Mask sensitive fields for anyone other than the teacher themselves
+      address: isSelf ? teacher.address : undefined,
+      taxNumber: isSelf ? teacher.taxNumber : undefined,
+    };
+
+    return NextResponse.json({ ok: true, data });
   } catch (err) {
     logError("app/api/teacher/profile GET", err).catch(() => {});
     return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
@@ -52,15 +69,25 @@ export async function GET(req: Request) {
 
 /**
  * PATCH /api/teacher/profile
- * Body: { email, description?, address?, name? }
+ * Only the authenticated teacher may update their own profile.
  */
 export async function PATCH(req: Request) {
   try {
+    const session = await getTeacherSession();
+    if (!session) {
+      return NextResponse.json({ error: "Nicht eingeloggt." }, { status: 401 });
+    }
+
     const body = await req.json().catch(() => ({}));
     const email = (body?.email as string | undefined)?.trim().toLowerCase();
 
     if (!email) {
       return NextResponse.json({ error: "email fehlt" }, { status: 400 });
+    }
+
+    // Teachers may only update their own profile
+    if (email !== session.email) {
+      return NextResponse.json({ error: "Keine Berechtigung." }, { status: 403 });
     }
 
     const teacher = await prisma.teacher.findUnique({

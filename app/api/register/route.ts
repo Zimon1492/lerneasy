@@ -51,9 +51,9 @@ export async function POST(req: Request) {
       );
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: "Passwort muss mindestens 6 Zeichen haben" },
+        { error: "Passwort muss mindestens 8 Zeichen haben" },
         { status: 400 }
       );
     }

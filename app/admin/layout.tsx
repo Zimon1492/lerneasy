@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             const active =
               item.href === "/admin"
                 ? pathname === "/admin"
-                : pathname.startsWith(item.href);
+                : pathname?.startsWith(item.href) ?? false;
             return (
               <Link
                 key={item.href}

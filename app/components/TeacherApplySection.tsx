@@ -161,7 +161,7 @@ export default function TeacherApplySection() {
           <form ref={formRef} onSubmit={onSubmit} encType="multipart/form-data" className="space-y-4">
             <label className="block">
               <span className="text-sm font-medium">Name *</span>
-              <input name="name" required className="mt-1 w-full border rounded p-2" placeholder="Simon Weber" />
+              <input name="name" required className="mt-1 w-full border rounded p-2" placeholder="Erika Mustermann" />
             </label>
 
             <label className="block">

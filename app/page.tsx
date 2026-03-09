@@ -162,7 +162,7 @@ export default function Home() {
       <footer className="bg-white border-t">
         <div className="mx-auto max-w-6xl px-6 md:px-10 py-10 grid sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div>
-            <div className="font-bold text-lg">LernApp</div>
+            <div className="font-bold text-lg">LernEasy</div>
             <p className="text-gray-600 mt-2">
               Nachhilfe einfach online buchen – von geprüften Lehrerinnen & Lehrern.
             </p>
@@ -202,7 +202,7 @@ export default function Home() {
         </div>
         <div className="border-t">
           <div className="mx-auto max-w-6xl px-6 md:px-10 py-6 text-sm text-gray-500 flex items-center justify-between">
-            <span>© {new Date().getFullYear()} LernApp</span>
+            <span>© {new Date().getFullYear()} LernEasy</span>
             <span>Made with ❤️</span>
           </div>
         </div>

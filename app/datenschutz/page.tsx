@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Datenschutzerklärung – LernApp",
+  title: "Datenschutzerklärung – LernEasy",
 };
 
 export default function DatenschutzPage() {
@@ -20,7 +20,7 @@ export default function DatenschutzPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-2">1. Verantwortlicher</h2>
             <p>
               Verantwortlicher im Sinne der DSGVO für den Betrieb dieser Plattform ist:<br />
-              <strong>LernApp e.U.</strong><br />
+              <strong>LernEasy e.U.</strong><br />
               E-Mail: <a href="mailto:lerneazy.office@gmail.com" className="text-blue-600 underline">lerneazy.office@gmail.com</a><br />
               Österreich
             </p>
@@ -209,8 +209,8 @@ export default function DatenschutzPage() {
             </ul>
             <p className="mt-2">
               Für Anfragen wende dich an:{" "}
-              <a href="mailto:lerneazy.office@gmail.com" className="text-blue-600 underline">
-                lerneazy.office@gmail.com
+              <a href="mailto:simonweberpp@gmail.com" className="text-blue-600 underline">
+                simonweberpp@gmail.com
               </a>
             </p>
           </section>

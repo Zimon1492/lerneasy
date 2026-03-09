@@ -7,9 +7,9 @@ export default function ImpressumPage() {
         <section className="mb-6">
           <h2 className="text-lg font-semibold mb-2">Angaben gem&auml;&szlig; &sect; 5 ECG</h2>
           <p className="text-gray-700 leading-relaxed">
-            LernApp e.U.<br />
-            Musterstra&szlig;e 1<br />
-            1010 Wien<br />
+            LernEasy e.U.<br />
+            Steinbachfeldweg 5<br />
+            5400 Hallein<br />
             &Ouml;sterreich
           </p>
         </section>
@@ -17,8 +17,7 @@ export default function ImpressumPage() {
         <section className="mb-6">
           <h2 className="text-lg font-semibold mb-2">Kontakt</h2>
           <p className="text-gray-700 leading-relaxed">
-            E-Mail: <a href="mailto:lerneazy.office@gmail.com" className="text-blue-600 hover:underline">lerneazy.office@gmail.com</a><br />
-            Telefon: +43 1 234 56 78
+            E-Mail: <a href="mailto:simonweberpp@gmail.com" className="text-blue-600 hover:underline">simonweberpp@gmail.com</a><br />
           </p>
         </section>
 

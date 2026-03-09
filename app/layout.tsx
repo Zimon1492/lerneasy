@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import SessionProviderWrapper from "app/components/SessionProviderWrapper";
 import { Analytics } from "@vercel/analytics/next";
+import AdSenseLoader from "app/components/AdSenseLoader";
 
 export const metadata: Metadata = {
   title: "LernApp – Nachhilfetermine einfach buchen",
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </SessionProviderWrapper>
         <Analytics />
+        <AdSenseLoader />
       </body>
     </html>
   );

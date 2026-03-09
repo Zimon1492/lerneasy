@@ -154,7 +154,7 @@ function NewTeacherForm() {
 
   const showAhs = schoolTrack === "AHS" || schoolTrack === "BOTH";
   const showBhs = schoolTrack === "BHS" || schoolTrack === "BOTH";
-  const fromApplication = !!(params.get("name") || params.get("email"));
+  const fromApplication = !!(params?.get("name") || params?.get("email"));
 
   return (
     <div className="p-8 max-w-2xl">

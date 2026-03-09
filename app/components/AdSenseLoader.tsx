@@ -1,24 +1,18 @@
 "use client";
 
-import Script from "next/script";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getConsent } from "./CookieBanner";
 
 export default function AdSenseLoader() {
-  const [consented, setConsented] = useState(false);
-
   useEffect(() => {
-    setConsented(getConsent() === "accepted");
+    if (getConsent() !== "accepted") return;
+    const script = document.createElement("script");
+    script.src =
+      "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1583079032504756";
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    document.head.appendChild(script);
   }, []);
 
-  if (!consented) return null;
-
-  return (
-    <Script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1583079032504756"
-      crossOrigin="anonymous"
-      strategy="afterInteractive"
-    />
-  );
+  return null;
 }

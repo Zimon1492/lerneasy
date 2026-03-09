@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import SessionProviderWrapper from "app/components/SessionProviderWrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "LernApp – Nachhilfetermine einfach buchen",
@@ -15,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionProviderWrapper>
           {children}
         </SessionProviderWrapper>
+        <Analytics />
       </body>
     </html>
   );

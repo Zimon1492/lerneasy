@@ -7,6 +7,8 @@ import AuthModal from "./components/AuthModal";
 import ChatWhatsAppModal from "./components/ChatWidget";
 import TeacherCarouselWrapper from "@/src/components/TeacherCarouselWrapper";
 import TeacherApplySection from "./components/TeacherApplySection";
+import CookieBanner from "./components/CookieBanner";
+import CookieSettingsButton from "./components/CookieSettingsButton";
 import type { Teacher } from "@/app/lib/types";
 
 type Rating = {
@@ -203,10 +205,11 @@ export default function Home() {
         <div className="border-t">
           <div className="mx-auto max-w-6xl px-6 md:px-10 py-6 text-sm text-gray-500 flex items-center justify-between">
             <span>© {new Date().getFullYear()} LernEasy</span>
-            <span>Made with ❤️</span>
+            <CookieSettingsButton />
           </div>
         </div>
       </footer>
+      <CookieBanner />
     </main>
   );
 }

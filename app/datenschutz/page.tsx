@@ -76,11 +76,11 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Cookies</h2>
-            <p>
-              Diese Website verwendet <strong>ausschließlich technisch notwendige Cookies</strong>,
-              die für den Betrieb der Plattform erforderlich sind. Für technisch notwendige Cookies
-              ist nach §&nbsp;165 Abs.&nbsp;3 TKG 2021 keine Einwilligung erforderlich.
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Cookies &amp; Einwilligung</h2>
+            <p className="font-medium text-gray-800 mt-2">Technisch notwendige Cookies</p>
+            <p className="mt-1">
+              Für den Betrieb der Plattform erforderlich. Keine Einwilligung notwendig
+              (§&nbsp;165 Abs.&nbsp;3 TKG 2021).
             </p>
             <ul className="list-disc ml-5 mt-2 space-y-1">
               <li>
@@ -92,12 +92,22 @@ export default function DatenschutzPage() {
                 als HttpOnly-Cookie. Gültig für 24 Stunden.
               </li>
               <li>
-                <strong>Cookie-Hinweis (cookie_notice):</strong> Speichert, ob der Cookie-Hinweis
-                bereits angezeigt wurde (localStorage, kein Server-Zugriff, kein Tracking).
+                <strong>Einwilligungs-Speicher (cookie_consent):</strong> Speichert deine
+                Cookie-Entscheidung im localStorage (kein Server-Zugriff).
               </li>
             </ul>
+
+            <p className="font-medium text-gray-800 mt-4">Werbe-Cookies (nur mit Einwilligung)</p>
+            <p className="mt-1">
+              Nur wenn du im Cookie-Banner <strong>„Alle akzeptieren"</strong> wählst, wird
+              Google AdSense geladen. Google AdSense setzt eigene Cookies und kann dein
+              Nutzungsverhalten plattformübergreifend verfolgen, um personalisierte Werbung
+              anzuzeigen. Rechtsgrundlage: Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a DSGVO (Einwilligung).
+            </p>
             <p className="mt-2">
-              Wir verwenden keine Tracking-, Analyse- oder Werbe-Cookies.
+              Du kannst deine Einwilligung jederzeit widerrufen, indem du den Browsercache
+              / localStorage löschst und die Seite neu lädst – dann erscheint das Cookie-Banner
+              erneut.
             </p>
           </section>
 
@@ -141,6 +151,19 @@ export default function DatenschutzPage() {
               <a href="https://stripe.com/de/connect-account/legal" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                 Stripe Connected Account Agreement
               </a>.
+            </p>
+
+            <p className="font-medium text-gray-800 mt-4">Google AdSense (Werbung)</p>
+            <p className="mt-1">
+              Mit deiner Einwilligung binden wir <strong>Google AdSense</strong> ein, einen
+              Werbedienst der Google Ireland Limited (Gordon House, Barrow Street, Dublin 4, Irland).
+              Google AdSense verwendet Cookies, um dir relevante Werbeanzeigen anzuzeigen, und kann
+              dein Nutzungsverhalten geräte- und webseitenübergreifend verfolgen. Die Datenverarbeitung
+              durch Google erfolgt gemäß der{" "}
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                Google-Datenschutzerklärung
+              </a>. Es kann dabei zu einer Datenübermittlung in die USA kommen (Standardvertragsklauseln
+              gemäß Art.&nbsp;46 DSGVO). Ohne deine Einwilligung wird kein AdSense-Code geladen.
             </p>
 
             <p className="font-medium text-gray-800 mt-4">E-Mail-Versand (SMTP)</p>

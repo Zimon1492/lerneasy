@@ -1,0 +1,9 @@
+Cronjob
+Rating bei teachers
+Chat-Pop-Up bei Schülern wenn der Lehrer Termin akzeptiert.
+Impressum
+AGBs
+Homepage bearbeiten
+Nicht alle buchungen sollen angezeigt werden beim Lehrer
+User-Tab bei Lehrer und Schüler
+Footer nicht nur bei Homepage

@@ -1,0 +1,12 @@
+Mario:
+    code
+    Kein Urlaub(2Tage erlaubt)
+Simon:
+    code ausrollen
+    Docker + Typescript + Prisma
+    Werbung
+        Flyer
+        Einböck
+        Online
+    Cloudflare
+    

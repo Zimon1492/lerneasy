@@ -1,0 +1,55 @@
+Schüler:
+    - Beim Buchen: Start und Ende von Nachhilfe eingeben(daraus wird sich der Preis berechnet)
+    - Profil-Ansicht und möglichkeit Daten zu ändern(z.B. Name, Passwort, etc.)
+    - Dem Schüler/Elternteil beim Buchen klarmachen, dass Karte erst belastet, wenn Lehere akzeptiert:
+    - Chatbox für kommunikation mit lehrer, wenn termin zugesagt wurde
+    - Ansicht mit freien terminen des Lehrers und nicht irgendwelche Uhrzeiten eingeben
+
+Lehrer:
+    - In DB vllt anstatt von einem Subject, mehrere, also zum Array machen.
+    - Sollte Schulstufen angeben können, welche er/sie unterrichten kann.
+    - Erinnerung an Nachhilfe Termin 1 Tag vor Termin oder so
+    - Im Kalender freie Termine eintragen
+
+Allgemein:
+    - Variable für URL in .env standadisieren. Damit wir gleiche Variablen verwenden
+    - DSGVO, Cookies, Nginx, AGBs, etc.
+    - Namen der Seite bestimmen
+    - Fyler erstellen, Visitenkarten
+    - WICHTIG: Beim Live gehen: Stripe Webhook testen, Cronjob für pages/api/cron einrichten
+    - Seite Responsive machen
+    - Passwörter encrypted speichern
+
+================================
+Work in Progress
+================================
+Schüler:
+    - Freie Termine des lehrers anzeigen
+    - Chatbox mit lehrer wenn termin bestätig wurde
+    -
+Lehrer: 
+    - Freie Termine anlegen zu können
+    - Chatbox, wenn termin bestätigt wurde schön machen
+Allgemein:
+    - Kommentare hinzufügen
+    - Admin-Account, mit zugriff auf Datenbank-Tabellen und eigenem Dashboard
+================================
+Fertig
+================================
+Schüler:
+    - Button zum Buchen unter src/components/CheckoutButton
+    - Buchung erstellen über create.ts (wird über CheckoutButton ausgeführt)
+    - Api zum Belasten der Karte des Schülers(pages/api/bookings/confirm.ts)
+    - Wenn Lehrer länger als 7 Tage zum Akzeptieren benötigt wird die Buchung gecancelt.
+Lehrer:
+    - Funktionalität für das akzeptieren eines Termins([id].tsx)
+    - Api zum Erstellen eines Stripe-Accounts (create-connect-account.ts und onboarding-link.ts)
+    - Api zum Auszahlen an den Lehrer (payout.ts)(wurde ersetzt)
+    - Cronjob für Lehrer, damit 15 Tage nach Termin Geld ausgezahlt wird.
+      Falls Lehrer noch keinen Stripe-Connect-Account besitzt, verzögert die Überweisung.
+      Für UI-Elemente zum Einbauen (MARIO DES IS FIA DI!!!) bei pages/teachers/test-dashboard, pages/api/cron/payouts.ts
+    - Guthaben-Anzeige im Test-Dashboard hinzugefügt und die Funktion das bestehende Guthaben 
+      auf das Bankkonto auszahlen zu können.
+    -
+Allgemein:
+    - 

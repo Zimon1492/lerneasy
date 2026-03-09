@@ -1,0 +1,618 @@
+================================================================================
+  LERNAPP – APP MAP  (Stand: März 2026)
+  Vollständige Übersicht aller Flows, Seiten, API-Routen und Datenmodelle
+================================================================================
+
+
+================================================================================
+  ROLES
+================================================================================
+
+  ADMIN      – verwaltet Lehrer/Bewerbungen via /admin; Auth: ADMIN_KEY-Env + admin_auth Cookie
+  TEACHER    – erteilt Nachhilfe, verwaltet Verfügbarkeit, nimmt Buchungen an/ab
+  STUDENT    – sucht Lehrer, bucht Stunden, chattet nach Buchung
+
+
+================================================================================
+  1. ADMIN SCENARIOS
+================================================================================
+
+  1a. Admin Login
+  ---------------
+  /admin/login
+    -> enter ADMIN_KEY
+    -> POST /api/admin/login
+       [valid]   -> sets admin_auth HttpOnly cookie (24h) -> weiterleiten
+       [invalid] -> Fehlermeldung
+
+  1b. Admin Logout
+  ----------------
+    -> POST /api/admin/logout -> löscht admin_auth Cookie
+
+  1c. Lehrerbewerbungen verwalten (NEUER FLOW – zweistufig)
+  ----------------------------------------------------------
+  /admin/applications
+    -> Listet alle TeacherApplication-Einträge mit Statusbadge
+    -> Status-Lifecycle:
+         new  ->  contract_sent  ->  active  (| rejected)
+
+    STUFE 1 – "Vertrag senden" (status === "new")
+      -> POST /api/admin/applications/[id]/send-contract
+         -> liest contracts/Lehrervertrag-LernApp.html
+         -> füllt Name + E-Mail der Lehrkraft ein
+         -> schickt HTML als Anhang an Bewerber-E-Mail
+         -> setzt status = "contract_sent"
+         Badge: gelb "Vertrag verschickt"
+
+    STUFE 2 – "Vertrag bestätigt → Aktivieren" (status === "contract_sent")
+      -> POST /api/admin/applications/[id]/confirm-contract
+         -> erstellt Teacher-Datensatz aus Bewerbungsdaten (upsert by email)
+         -> erstellt PasswordResetToken (24h)
+         -> schickt Set-Password-E-Mail an Lehrkraft
+         -> setzt status = "active"
+         Badge: grün "Aktiv"
+
+    "Erneut senden" (status === "contract_sent")
+      -> POST /api/admin/applications/[id]/send-contract (idempotent)
+
+    "Löschen"
+      -> DELETE /api/admin/applications  { id }
+
+    PDF ansehen (DSGVO-sicher, nur für Admin)
+      -> GET /api/admin/applications/file?name=<filename>
+         -> liest aus private-uploads/ (NICHT public/)
+         -> prüft admin_auth Cookie
+         -> liefert PDF mit Content-Type application/pdf
+
+  1d. Lehrer manuell anlegen
+  --------------------------
+  /admin/teachers/new
+    -> Formular: name, email, subject, schoolTrack, levelPref, schoolForms
+    -> POST /api/admin/teachers
+       -> erstellt Teacher (mustChangePassword=true)
+       -> erstellt PasswordResetToken
+       -> schickt Set-Password-E-Mail
+
+  1e. Lehrer verwalten
+  --------------------
+  /admin/teachers
+    -> GET /api/admin/teachers  -> Lehrerliste
+    -> GET/PATCH/DELETE /api/admin/teachers/[id]  -> Einzellehrer
+    -> POST /api/admin/teachers/[id]/resend-link  -> neuen Set-Password-Link schicken
+
+  1f. Schüler verwalten
+  ---------------------
+  /admin/students
+    -> GET /api/admin/students
+    -> GET/DELETE /api/admin/students/[id]
+
+  1g. Buchungen (Admin-Übersicht)
+  --------------------------------
+  /admin/bookings
+    -> GET /api/admin/bookings
+    -> GET/PATCH /api/admin/bookings/[id]
+
+  1h. Fehler-Logs
+  ---------------
+  /admin/errors
+    -> GET /api/admin/error-logs
+
+  1i. Stats
+  ---------
+  GET /api/admin/stats  -> Kennzahlen (Buchungen, Umsatz, etc.)
+
+
+================================================================================
+  2. TEACHER ONBOARDING
+================================================================================
+
+  2a. Bewerbung einreichen (öffentlich, kein Login)
+  --------------------------------------------------
+  Landing page (/) oder /aplly  (TeacherApplySection-Komponente)
+    -> Name, E-Mail, Fach, Motivationsschreiben, PDF-Upload (max 10 MB)
+    -> POST /api/teachers/apply
+       -> Rate-Limit: 3 pro IP pro Stunde
+       -> speichert PDF in private-uploads/<timestamp>-<filename>.pdf
+          (NICHT in public/ – kein öffentlicher Direktzugriff)
+       -> speichert TeacherApplication in DB (status: "new")
+       -> E-Mail an Admin: "Neue Lehrerbewerbung" (Link: /api/admin/applications/file?name=...)
+       -> Bestätigungs-E-Mail an Bewerber
+
+  2b. Passwort festlegen (nach Admin-Aktivierung)
+  ------------------------------------------------
+  /teacher/set-password?token=<token>
+    -> Neues Passwort eingeben
+    -> POST /api/teacher/set-password
+       [gültig]    -> hasht Passwort, mustChangePassword=false, löscht Token
+       [abgelaufen] -> Fehler; Admin muss neuen Link schicken
+
+  2c. Teacher Login
+  -----------------
+  /auth/teacher/login
+    -> E-Mail + Passwort
+    -> next-auth "teacher-credentials" Provider
+       [ok]    -> JWT Session -> /teacher/dashboard
+       [fehler] -> Fehlermeldung
+
+
+================================================================================
+  3. TEACHER SETUP (nach erstem Login)
+================================================================================
+
+  3a. Unterrichtsangebote (TeachingOffers)
+  ----------------------------------------
+  /teacher/subjects
+    -> Fach auswählen (aus Teacher.subject, z.B. "Mathematik, Englisch")
+    -> Schultyp (AHS / BHS), Schulform, Stufe, Klassen-Range
+    -> POST /api/teacher/offers/create  -> erstellt TeachingOffer(s)
+    -> POST /api/teacher/offers/delete  -> einzelnes Angebot löschen
+    -> POST /api/teacher/offers/delete-by-subjects
+    -> POST /api/teacher/offers/ensure-all-form
+
+  3b. Verfügbarkeit
+  -----------------
+  /teacher/availability
+
+  Wochenplan:
+    -> Mo–So an/aus, fromTime/toTime pro Tag
+    -> GET/PUT /api/teacher/weekly-schedule
+
+  Gesperrte Zeiträume (Urlaub, Krankheit):
+    -> POST /api/teacher/unavailability  -> TeacherUnavailability (fromDate, toDate)
+    -> DELETE /api/teacher/unavailability/:id
+
+  3c. Profil
+  ----------
+  /teacher/profile
+    -> Profilbild: POST /api/teacher/profile/picture  (→ /public/uploads/profiles/)
+    -> Name, Adresse, Beschreibung: PATCH /api/teacher/profile
+    -> Bewertungen anzeigen: GET /api/ratings?teacherId=...
+
+
+================================================================================
+  4. STUDENT SCENARIOS
+================================================================================
+
+  4a. Registrierung / Login
+  -------------------------
+  /auth/login  (AuthModal-Komponente auf Landing Page)
+    -> Registrierung: POST /api/register  -> erstellt User (Student)
+    -> Login: next-auth "student-credentials" Provider -> JWT -> /student/dashboard
+  /student/forgot-password  -> POST /api/student/forgot-password -> Reset-Link per E-Mail
+  /student/set-password     -> POST /api/student/set-password
+
+  4b. Profil
+  ----------
+  /student/profile
+    -> Profilbild: POST /api/student/profile/picture
+    -> Name, Adresse: PATCH /api/student/profile
+    -> Schulinfos (read-only)
+
+  4c. Lehrer suchen
+  -----------------
+  /student/dashboard
+    -> Textsuche oder Fach-Chip
+    -> GET /api/search?subject=...&studentEmail=...  -> passende Lehrer nach Schulprofil
+    -> GET /api/teachers  -> alle Lehrer (inkl. avgRating, ratingCount, profilePicture)
+
+  4d. Stunde buchen (vollständiger Stripe-Flow)
+  ---------------------------------------------
+
+  SCHRITT 1 – Lehrer ansehen, Termin wählen
+  /book/:teacherId
+    -> GET /api/teachers/:id  -> Lehrerprofil inkl. Bewertungen
+    -> GET /api/student/teacher-blocked-dates?teacherId=...  -> gesperrte Zeiträume
+    -> GET /api/student/teacher-booked-slots?teacherId=...&date=...  -> belegte Slots
+    -> Dauer + Preis live berechnet: (Minuten/60) × 33 €
+    -> "Jetzt buchen": POST /api/bookings
+         -> Schüler-User upsert by email
+         -> prüft Überschneidungen (pending/checkout_started/payment_method_saved/paid)
+         -> erstellt Booking (status: "pending")
+
+  SCHRITT 1b – FAGG-Pflichtinfo (§ 4 FAGG) ← NEU
+    -> Vor Stripe-Weiterleitung: CheckoutDisclosureModal erscheint
+       -> zeigt: Leistung, Termin, Gesamtpreis, Anbieter, Widerrufsbelehrung
+       -> "Weiter zur Zahlung" oder "Abbrechen"
+    -> POST /api/student/checkout { bookingId }
+         -> Stripe Checkout Session (mode=setup, Karte speichern, noch kein Charge)
+         -> Booking status -> "checkout_started"
+
+  SCHRITT 2 – Stripe Checkout (hosted)
+    -> Schüler gibt Kartendaten ein
+    [abgeschlossen] -> Stripe Webhook: checkout.session.completed
+                    -> /api/stripe/webhook/webhook
+                    -> Booking: stripePaymentMethodId gesetzt, status = "payment_method_saved"
+                    -> Weiterleitung zu /success
+    [abgebrochen]  -> /cancel; Booking bleibt "checkout_started" (Cron löscht es)
+
+  4e. Buchungsübersicht & Zahlung
+  --------------------------------
+  /student/payments
+    -> GET /api/student/bookings  -> alle Buchungen
+    -> "Jetzt zahlen": CheckoutDisclosureModal → Stripe
+    -> "Stornieren" (vor Zahlung): POST /api/student/bookings/[id]/cancel
+    -> Bewertung abgeben (nach "paid"): POST /api/ratings
+
+  4f. Account löschen
+  -------------------
+    -> POST /api/student/account  (oder DELETE)
+
+
+================================================================================
+  5. TEACHER BOOKING ACTIONS
+================================================================================
+
+  /teacher/dashboard  (FullCalendar)
+    -> GET /api/bookings/teacher?email=...
+    -> Farben: BLAU=payment_method_saved, GRÜN=paid, ROT=declined/payment_failed,
+               GRAU=pending/checkout_started/canceled_by_system
+
+  5a. Annehmen
+  ------------
+  -> POST /api/bookings/confirm { bookingId }
+     -> status muss "payment_method_saved" sein
+     -> erstellt Stripe PaymentIntent (off_session, sofortige Abbuchung)
+     -> IN TRANSAKTION: status="paid", stripePaymentIntentId gesetzt,
+                        Availability-Slot gelöscht
+     -> erstellt oder reaktiviert Chat (teacherId + studentEmail)
+     -> E-Mail an Schüler: "Bestätigt, XX € abgebucht"
+     [Zahlung fehlgeschlagen] -> status="payment_failed"
+
+  5b. Ablehnen
+  ------------
+  -> POST /api/bookings/decline { bookingId }
+     -> detacht stripePaymentMethodId bei Stripe
+     -> status="declined", Stripe-IDs gelöscht
+     -> E-Mail an Schüler
+
+  5c. Lehrer storniert bestätigte Buchung
+  ----------------------------------------
+  -> POST /api/teacher/bookings/[id]/cancel
+     -> Stripe Refund
+     -> status="teacher_cancelled"
+     -> E-Mail an Schüler
+
+  5d. Automatische Ablaufstornierung (Cron)
+  ------------------------------------------
+  GET /api/cron/acceptDeadline  (externer Scheduler, z.B. Vercel Cron)
+    -> Buchungen älter als 6 Tage mit status pending/checkout_started/payment_method_saved
+    -> detacht Stripe-Karten, E-Mail an Schüler, status="canceled_by_system"
+
+
+================================================================================
+  6. CHAT
+================================================================================
+
+  Chat-Raum entsteht automatisch beim Annehmen (POST /api/bookings/confirm):
+    -> upsert Chat (teacherId + studentEmail); ein Chat pro Paar
+
+  Ungelesene-Badge:
+    -> Chat.teacherLastRead / studentLastRead (DateTime)
+    -> GET /api/teacher/unread-chats-count?email=...
+    -> GET /api/student/unread-chats-count
+    -> PATCH /api/chat/:chatId/mark-read { role: "teacher"|"student" }
+
+  Teacher: /teacher/chat  ->  /teacher/chat/:chatId
+    -> GET /api/teacher/chat  -> Chatliste
+    -> GET /api/chat/:chatId/messages  (polling 1.2s)
+    -> POST /api/chat/:chatId/messages  -> Nachricht senden (sender="teacher")
+
+  Student: /student/chat
+    -> GET /api/student/chat  -> Chatliste
+    -> GET /api/chat/:chatId/messages
+    -> POST /api/chat/:chatId/messages  -> Nachricht senden (sender="student")
+
+  Sender-Typen: "teacher" | "student" | "system"  (system = gelbe Banner)
+
+
+================================================================================
+  7. TEACHER PAYOUT FLOW
+================================================================================
+
+  Revenue-Split: Schüler zahlt 100% → Plattform 40%, Lehrkraft 60%
+  Auszahlung nur für abgehaltene Stunden (booking.end < now)
+
+  7a. Stripe Connect Onboarding
+  ------------------------------
+  /teacher/payments
+    -> POST /api/teacher/stripe-connect  -> Express-Account erstellen + Onboarding-URL
+    -> GET  /api/teacher/stripe-connect  -> Status prüfen (charges_enabled + payouts_enabled)
+       -> Teacher.stripeConnectOnboarded = true wenn ok
+
+  7b. Auszahlung beantragen
+  -------------------------
+  -> POST /api/teacher/payout
+     -> earnedCents   = Σ floor(priceCents × 0.6) für paid-Buchungen (end < now)
+     -> paidOutCents  = Σ TeacherPayout.amountCents
+     -> availableCents = earned – paidOut
+     -> stripe.transfers.create → destination: stripeConnectAccountId
+     -> erstellt TeacherPayout-Datensatz
+
+  7c. Balance / History
+  ---------------------
+  GET /api/teacher/payout  -> earnedCents, paidOutCents, availableCents, payouts[]
+
+
+================================================================================
+  8. BOOKING STATUS LIFECYCLE
+================================================================================
+
+  pending
+    └─> checkout_started  (Schüler öffnet Stripe Checkout)
+          ├─> [abgebrochen] ──────────────────────> canceled_by_system (Cron)
+          └─> payment_method_saved  (Webhook: Karte gespeichert)
+                ├─> [Lehrer lehnt ab] ──────────> declined
+                ├─> [6 Tage keine Aktion] ──────> canceled_by_system (Cron)
+                └─> [Lehrer nimmt an]
+                      ├─> [Zahlung schlägt fehl] -> payment_failed
+                      └─> paid  (Karte abgebucht, Chat erstellt)
+                            └─> paid + end < now  (60% für Auszahlung verfügbar)
+
+
+================================================================================
+  9. RECHTLICHE SEITEN & DOKUMENTE
+================================================================================
+
+  /agb           AGB (inkl. Widerrufsrecht FAGG, KSchG-konform, 2 Monate Änderungsfrist)
+  /datenschutz   Datenschutzerklärung (DSGVO/DSG, Bewerbungsdaten-Retention 6 Monate)
+  /impressum     Impressum (ECG §5)
+
+  contracts/Lehrervertrag-LernApp.html
+    -> Werkvertrag + AVV (Art. 28 DSGVO) als druckbarer HTML-Template
+    -> Abdeckung: Selbstständigkeit, Scheinselbstständigkeit-Schutz, Provision 60%,
+       Stornierungsregeln, Haftung, Vertraulichkeit/Direktkontaktverbot,
+       Kündigung, AVV (Auftragsverarbeitungsvertrag)
+    -> Admin kann ausdrucken: Browser → "Als PDF speichern"
+
+  Cookie-Banner (CookieBanner.tsx):
+    -> nur technisch notwendige Cookies (§ 165 Abs. 3 TKG 2021)
+    -> Buttons: "Verstanden" + "Schließen" (kein Tracking-Consent erforderlich)
+
+  FAGG-Pflichtinfo vor Stripe-Checkout (CheckoutDisclosureModal):
+    -> zeigt Leistung, Preis, Anbieter, Widerrufsbelehrung
+    -> Schüler muss bestätigen bevor Stripe-Redirect
+
+
+================================================================================
+  10. DATEI-UPLOADS (DSGVO-sicher)
+================================================================================
+
+  Bewerbungs-PDFs:
+    -> gespeichert in: private-uploads/<timestamp>-<filename>.pdf  (NICHT in public/)
+    -> abrufbar nur via: GET /api/admin/applications/file?name=<filename>
+       (prüft admin_auth Cookie; path-traversal-gesichert)
+    -> filePath in DB speichert nur den Dateinamen (ohne Pfad)
+
+  Profilbilder (Lehrer + Schüler):
+    -> gespeichert in: public/uploads/profiles/
+    -> öffentlich abrufbar (kein sensibles Inhalt)
+
+
+================================================================================
+  11. VOLLSTÄNDIGE SEITEN-REFERENZ
+================================================================================
+
+  App Router (app/)
+  -----------------
+  /                          Landing page (Lehrergitter + Bewerbungsformular)
+  /aplly                     Alternatives Bewerbungsformular (Tippfehler-Route)
+  /apply-test                Testseite Bewerbungsformular
+  /agb                       Allgemeine Geschäftsbedingungen
+  /datenschutz               Datenschutzerklärung
+  /impressum                 Impressum
+  /auth/login                Schüler-Login
+  /auth/teacher/login        Lehrer-Login
+  /auth/error                NextAuth Fehlerseite
+  /admin/login               Admin-Login
+  /admin/                    Admin-Dashboard
+  /admin/applications        Bewerbungen (Status-Flow: senden → bestätigen → aktiv)
+  /admin/teachers            Lehrerverwaltung
+  /admin/teachers/new        Lehrer manuell anlegen
+  /admin/students            Schülerverwaltung
+  /admin/bookings            Buchungsübersicht (Admin)
+  /admin/errors              Fehler-Logs
+  /book/:teacherId           Stunde buchen (Kalender + Stripe-Flow)
+  /search                    Lehrersuche
+  /student/dashboard         Schüler-Startseite (Lehrersuche)
+  /student/profile           Schülerprofil (Bild, Name, Adresse)
+  /student/payments          Buchungen + Zahlungsstatus + FAGG-Modal
+  /student/chat              Chat-Liste (Schüler)
+  /student/forgot-password   Passwort vergessen
+  /student/set-password      Passwort zurücksetzen (Token-Link)
+  /teacher/dashboard         Lehrer-Dashboard (FullCalendar)
+  /teacher/availability      Wochenplan + gesperrte Zeiträume
+  /teacher/subjects          Unterrichtsangebote verwalten
+  /teacher/chat              Chat-Liste (Lehrer)
+  /teacher/chat/:chatId      Einzelner Chat (Lehrer)
+  /teacher/payments          Buchungen + Auszahlung + Stripe Connect
+  /teacher/profile           Lehrerprofil + Bewertungen
+  /teacher/set-password      Passwort festlegen (erster Login via Token-Link)
+  /teacher/                  Lehrer-Redirect-Seite
+
+  Pages Router (pages/)
+  ---------------------
+  /success                   Post-Stripe-Checkout Erfolgsseite
+  /cancel                    Post-Stripe-Checkout Abbruchseite
+  /products                  (Platzhalter)
+  /checkout-test             (Testseite)
+  /teacher/confirm/:id       Buchung bestätigen via URL (Legacy)
+  /teacher/test-dashboard    (Testseite)
+
+
+================================================================================
+  12. VOLLSTÄNDIGE API-REFERENZ
+================================================================================
+
+  App Router (app/api/)
+  ---------------------
+
+  -- Admin Auth --
+  POST /api/admin/login                          Admin-Login (setzt Cookie)
+  POST /api/admin/logout                         Admin-Logout (löscht Cookie)
+
+  -- Admin: Bewerbungen --
+  GET  /api/admin/applications                   Alle Bewerbungen
+  DELETE /api/admin/applications                 Bewerbung löschen
+  POST /api/admin/applications/[id]/send-contract    Vertrag per E-Mail senden
+  POST /api/admin/applications/[id]/confirm-contract Lehrer anlegen + Passwort-Link
+  GET  /api/admin/applications/file?name=...     PDF sicher ausliefern (Admin only)
+
+  -- Admin: Lehrer --
+  POST /api/admin/teachers                       Lehrer manuell erstellen
+  GET  /api/admin/teachers/[id]                  Einzellehrer lesen
+  PATCH /api/admin/teachers/[id]                 Lehrer bearbeiten
+  DELETE /api/admin/teachers/[id]                Lehrer löschen
+  POST /api/admin/teachers/[id]/resend-link      Set-Password-Link erneut senden
+
+  -- Admin: Schüler --
+  GET  /api/admin/students                       Alle Schüler
+  GET  /api/admin/students/[id]                  Einzelschüler
+  DELETE /api/admin/students/[id]                Schüler löschen
+
+  -- Admin: Buchungen --
+  GET  /api/admin/bookings                       Alle Buchungen
+  GET  /api/admin/bookings/[id]                  Einzelbuchung
+  PATCH /api/admin/bookings/[id]                 Buchung bearbeiten
+
+  -- Admin: Misc --
+  GET  /api/admin/stats                          Plattform-Kennzahlen
+  GET  /api/admin/error-logs                     Fehler-Logs
+
+  -- Öffentliche Lehrer-API --
+  GET  /api/teachers                             Alle Lehrer (inkl. avgRating)
+  GET  /api/teachers/list                        Lehrer-Liste (alternativ)
+  GET  /api/teachers/:id                         Einzelner Lehrer + Bewertungen
+  POST /api/teachers/apply                       Bewerbung einreichen
+
+  -- Teacher (auth: next-auth JWT) --
+  GET  /api/teacher/me                           Eingeloggter Lehrer
+  POST /api/teacher/set-password                 Passwort festlegen (Token)
+  GET/PATCH /api/teacher/profile                 Profil lesen/aktualisieren
+  POST /api/teacher/profile/picture              Profilbild hochladen
+  GET/PUT  /api/teacher/weekly-schedule          Wochenplan lesen/speichern
+  POST /api/teacher/unavailability               Gesperrten Zeitraum anlegen
+  DELETE /api/teacher/unavailability/:id         Zeitraum löschen
+  GET  /api/teacher/offers                       Angebote lesen
+  POST /api/teacher/offers/create                Angebot(e) erstellen
+  POST /api/teacher/offers/delete                Einzelangebot löschen
+  POST /api/teacher/offers/delete-by-subjects    Nach Fach löschen
+  POST /api/teacher/offers/ensure-all-form       ALL-Schulform sicherstellen
+  GET  /api/teacher/payments                     Buchungsliste (Lehrer)
+  GET/POST /api/teacher/payout                   Balance + Auszahlung auslösen
+  GET/POST /api/teacher/stripe-connect           Connect-Status + Onboarding-Link
+  POST /api/teacher/bookings/[id]/cancel         Buchung stornieren (Lehrer)
+  GET  /api/teacher/chat                         Chat-Liste (Lehrer)
+  POST /api/teacher/chat/:chatId/message         Nachricht senden (Lehrer)
+  GET  /api/teacher/unread-chats-count           Ungelesene Chats (Badge)
+  GET  /api/teacher/availability                 Verfügbarkeit (Legacy)
+  DELETE /api/teacher/availability/:id           (Legacy)
+
+  -- Student (auth: next-auth JWT) --
+  POST /api/register                             Schüler registrieren
+  GET/PATCH /api/student/profile                 Profil lesen/aktualisieren
+  POST /api/student/profile/picture              Profilbild hochladen
+  GET  /api/student/bookings                     Buchungen (Schüler)
+  POST /api/student/bookings/[id]/cancel         Buchung stornieren (Schüler)
+  POST /api/student/checkout                     Stripe Checkout starten
+  GET  /api/student/availability                 Verfügbarkeit (Legacy)
+  GET  /api/student/teacher-blocked-dates        Gesperrte Zeiträume eines Lehrers
+  GET  /api/student/teacher-booked-slots         Belegte Slots eines Lehrers/Tag
+  GET  /api/student/teacher-availability         Lehrerverfügbarkeit
+  GET  /api/student/chat                         Chat-Liste (Schüler)
+  GET  /api/student/unread-chats-count           Ungelesene Chats (Badge)
+  POST /api/student/forgot-password              Passwort-Reset anfordern
+  POST /api/student/set-password                 Passwort zurücksetzen
+  POST /api/student/account                      Account-Verwaltung (Löschen)
+
+  -- Chat (beide Rollen) --
+  GET  /api/chat/:chatId/messages                Nachrichten laden (polling)
+  POST /api/chat/:chatId/messages                Nachricht senden
+  PATCH /api/chat/:chatId/mark-read             Als gelesen markieren
+
+  -- Misc --
+  GET/POST /api/ratings                          Bewertungen lesen / abgeben
+  GET  /api/subjects                             Fächer-Liste
+  GET  /api/search                               Lehrersuche (gefiltert)
+  GET  /api/bookings/student                     Buchungen (Schüler, App Router)
+  GET  /api/bookings/teacher                     Buchungen (Lehrer, App Router)
+  GET  /api/_email-test                          E-Mail-Smoketest (intern)
+
+  Pages Router (pages/api/)
+  -------------------------
+  ALL  /api/auth/[...nextauth]                   NextAuth (Schüler + Lehrer Login)
+  POST /api/bookings/create                      Buchung erstellen (Legacy)
+  POST /api/bookings/confirm                     Lehrer nimmt an (charge card)
+  POST /api/bookings/decline                     Lehrer lehnt ab
+  GET  /api/stripe/webhook/webhook               Stripe Webhook Handler
+  GET  /api/stripe/webhook/prices                Stripe Preise
+  GET  /api/cron/acceptDeadline                  Abgelaufene Buchungen stornieren (Cron)
+  GET  /api/cron/payouts                         Auszahlungen (Cron)
+  POST /api/teacher/create-connect-account       Stripe Connect Setup (Pages)
+  GET  /api/teacher/onboarding-link              Connect Onboarding URL (Pages)
+  GET  /api/teacher/connect-balance              Connect Balance (Pages)
+  POST /api/teacher/bank-payout                  Bankauszahlung (Pages)
+  GET  /api/teacher/platform-balance             Plattform-Balance (Pages)
+  GET  /api/teacher/status                       Connect-Status (Pages)
+  POST /api/teacher/create-test                  Testlehrer erstellen
+
+
+================================================================================
+  13. DATENMODELLE (Prisma / SQLite)
+================================================================================
+
+  User              Schüler (email unique, schoolTrack/Form/Level/Grade, Stripe-IDs)
+  Teacher           Lehrer (subject String, schoolTrack, allowedForms JSON, Stripe Connect)
+  TeachingOffer     Normalisiertes Angebot (teacherId, subjectId, schoolForm, level, grade-Range)
+  Subject           Fach-Lookup-Tabelle
+  Availability      Einzelner verfügbarer Termin (Legacy, optional an Offer geknüpft)
+  TeacherUnavailability  Gesperrter Zeitraum (fromDate, toDate)
+  TeacherWeeklySchedule  Wochenplan (weekday 0-6, fromTime, toTime, active)
+  Booking           Buchung (status-Lifecycle, Stripe-IDs, priceCents, note)
+  TeacherRating     Bewertung (stars 1-5, comment, unique per student-teacher)
+  TeacherPayout     Auszahlungs-Datensatz (amountCents, stripeTransferId)
+  Chat              Chat-Raum (teacherId + studentEmail, lastRead-Timestamps)
+  ChatMessage       Nachricht (sender: teacher|student|system)
+  PasswordResetToken    Lehrer-Passwort-Reset (24h, one-time)
+  UserPasswordResetToken Schüler-Passwort-Reset
+  ErrorLog          Fehler-Log (filepath, errorCode, errorText, 90 Tage retention)
+  TeacherApplication    Bewerbung (status: new|contract_sent|active|rejected, filePath=Dateiname)
+
+
+================================================================================
+  14. ENVIRONMENT VARIABLES
+================================================================================
+
+  ADMIN_KEY                  Passwort für Admin-Bereich
+  NEXTAUTH_SECRET            NextAuth JWT Secret
+  NEXTAUTH_URL               NextAuth Base URL (z.B. http://localhost:3000)
+  NEXT_PUBLIC_BASE_URL       Öffentliche Base URL (für E-Mail-Links)
+  NEXT_PUBLIC_DOMAIN         Domain (für Stripe Redirect URLs)
+  STRIPE_SECRET_KEY          Stripe Secret Key
+  STRIPE_WEBHOOK_SECRET      Stripe Webhook Signing Secret
+  SMTP_HOST                  Mailserver Host
+  SMTP_PORT                  Mailserver Port
+  SMTP_USER                  Mailserver Benutzername / Admin-E-Mail
+  SMTP_PASS                  Mailserver Passwort
+  FROM_EMAIL                 Absenderadresse für ausgehende E-Mails
+
+  Lokale Stripe Webhook Weiterleitung (Dev):
+    stripe listen --forward-to http://localhost:3000/api/stripe/webhook/webhook
+
+
+================================================================================
+  15. SCHLÜSSEL-KONVENTIONEN
+================================================================================
+
+  - export const runtime = "nodejs"  in allen API-Routen mit Node-APIs
+  - params in Next.js 16 sind Promise<{id}> → const { id } = await params
+  - Admin-Auth: isAdminAuthed(req) aus app/api/admin/_auth.ts
+  - Lehrer-Auth: getTeacherSession() aus app/lib/auth.ts
+  - Schüler-Auth: getStudentSession() aus app/lib/auth.ts
+  - Prisma-Singleton: import prisma from "@/app/lib/prisma"
+  - Shared Types: import { Teacher } from "@/app/lib/types"
+  - Fehler loggen: logError(filepath, err) aus @/app/lib/logError
+  - Zwei Komponenten-Verzeichnisse: app/components/ (neu) und src/components/ (Legacy)
+  - Bewerbungs-PDFs: private-uploads/ (root) – NICHT public/
+  - Profilbilder: public/uploads/profiles/ – öffentlich
+
+================================================================================

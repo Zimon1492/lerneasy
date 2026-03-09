@@ -1,0 +1,234 @@
+# Next.js + Stripe — Buchungs- und Zahlungs-Plan (Deutsch)
+
+Dieses Dokument beschreibt ein vollständiges Integrations-Pattern für deine Nachhilfe-Plattform: Termine können >1 Woche im Voraus gebucht werden. Zahlungsdaten werden sicher gespeichert (SetupIntent) und erst kurz vor dem Termin (z. B. 24h vorher) belastet. Wenn der Lehrer nach der Bestätigung doch absagt, wird **gar nichts** abgebucht.
+
+---
+
+## Architektur (Kurzüberblick)
+
+- Next.js (Node) Backend — API-Routen (pages/api) oder App Router route-handlers
+- Stripe Node SDK auf dem Server
+- Stripe.js (Frontend) + Elements zur Erfassung der Kartendaten
+- Datenbank (Beispiel: Prisma + PostgreSQL) zum Speichern: User, Teacher, Booking, PaymentMethod, PaymentIntentRef
+- Webhooks: `setup_intent.succeeded`, `payment_intent.succeeded`, `payment_intent.payment_failed` etc.
+
+---
+
+## Haupt-Flows
+
+1. **Reservierung (Student bucht Termin)**
+   - Erstelle `Booking` mit Status `pending`.
+   - Erzeuge auf dem Server einen `SetupIntent` und gib `client_secret` an das Frontend zurück.
+   - Student gibt Kartendaten ein und bestätigt Setup (Stripe.js). Ergebnis: `setup_intent.succeeded` + `payment_method`.
+   - Speichere die `payment_method` (oder `payment_method.id`) an den Stripe-Customer (erstelle Customer falls nötig) *und* im DB-Record `PaymentMethod`.
+   - Keine Abbuchung; keine Gebühren.
+
+2. **Lehrer bestätigt**
+   - Booking.status -> `confirmed_by_teacher` (oder `confirmed_pending_capture`).
+   - NO CAPTURE at this point.
+
+3. **Kurz vor Termin (z.B. 24h vorher)**
+   - Scheduler/Cron-Job / Background worker prüft Bookings mit status `confirmed` und `capture_at` in der Zukunft, erstellt einen `PaymentIntent` und versucht `confirm` off_session mit gespeicherter `payment_method`.
+   - Falls `status` der PaymentIntent `succeeded` → Booking.status -> `paid`.
+   - Falls `requires_action` (Authentifizierung notwendig): sende Student eine E‑Mail mit einem Link zur Zahlungsbestätigung (Frontend, wo Stripe.js das 3DS flows abwickelt). Wenn Student nicht bestätigt: Booking.status -> `payment_failed`.
+
+4. **Lehrer sagt nach Bestätigung doch ab**
+   - Wenn noch kein Capture / keine Abbuchung stattgefunden hat: Booking löschen oder status->`teacher_cancelled` und nothing to do — es wurde nie abgebucht.
+   - Falls Zahlung bereits gecaptured: mache `refund` und informiere beide Seiten (Stripe-Gebühren bleiben vom Konto getragen).
+
+---
+
+## Wichtige Entscheidungen / Gründe
+
+- **SetupIntent** statt früherer `manual capture`-Autorisationen, weil SetupIntent *unbegrenzt* (oder lange) gültig ist und ideal für Zahlungen Wochen/Monate im Voraus ist.
+- **Off-session Payment** (PaymentIntent confirm off_session) 12–48h vor Termin: reduziert SCA-Probleme. Wenn SCA nötig ist, handle mit einem erneuten Customer-Action-Flow.
+- **Webhooks** sind Pflicht: um sichere, zuverlässige Statusupdates zu bekommen.
+
+---
+
+## DB-Schema (Beispiel mit Prisma)
+
+```prisma
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  stripeCustomerId String?
+  paymentMethods PaymentMethod[]
+  bookings Booking[]
+}
+
+model Teacher {
+  id String @id @default(uuid())
+  name String
+  bookings Booking[]
+}
+
+model Booking {
+  id String @id @default(uuid())
+  studentId String
+  teacherId String
+  start DateTime
+  end DateTime
+  status String  // pending / confirmed / paid / teacher_cancelled / refunded / payment_failed
+  paymentMethodId String?
+  paymentIntentId String?
+  captureAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model PaymentMethod {
+  id String @id @default(uuid())
+  userId String
+  stripePaymentMethodId String
+  cardBrand String?
+  last4 String?
+  expMonth Int?
+  expYear Int?
+  createdAt DateTime @default(now())
+}
+```
+
+---
+
+## Environment / Voraussetzungen
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `DATABASE_URL` (Prisma)
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+
+Install:
+```
+npm install stripe @stripe/stripe-js prisma @prisma/client nodemailer
+```
+
+---
+
+## Beispiel-API-Endpunkte (pages/api) — Grober Code
+
+> Hinweis: Aus Platzgründen sind die Beispiele gekürzt; im Canvas findest du komplette, kommentierte Endpunkte.
+
+### 1) `POST /api/create-setup-intent` (Server)
+```js
+// pages/api/create-setup-intent.js
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export default async function handler(req,res){
+  const {customerEmail} = req.body;
+  // optional: create or lookup Customer in your DB and Stripe
+  const customer = await stripe.customers.create({email: customerEmail});
+  const setupIntent = await stripe.setupIntents.create({customer: customer.id});
+  // save stripeCustomerId to your DB
+  res.json({clientSecret: setupIntent.client_secret, customerId: customer.id});
+}
+```
+
+Frontend uses `stripe.confirmCardSetup(clientSecret, {payment_method: {card: cardElement}})` to save.
+
+
+### 2) Save payment method to DB after setup
+- On `setup_intent.succeeded` webhook or after `confirmCardSetup` resolve, attach `payment_method` to the Stripe Customer and store `stripePaymentMethodId` in DB.
+
+### 3) Scheduler Endpoint: `POST /api/attempt-charge` (called by cron)
+```js
+// server-side worker (could be an API endpoint called by cron)
+const paymentIntent = await stripe.paymentIntents.create({
+  amount: bookingAmountInCents,
+  currency: 'eur',
+  customer: stripeCustomerId,
+  payment_method: savedPaymentMethodId,
+  off_session: true,
+  confirm: true,
+});
+
+// handle paymentIntent.status (succeeded, requires_action, requires_payment_method, etc.)
+```
+
+If `requires_action` → save a token / url and email the student to complete authentication.
+
+---
+
+## Webhook-Handling (wichtig)
+
+- `setup_intent.succeeded`: speichere PaymentMethod → markiere Booking.paymentMethodId
+- `payment_intent.succeeded`: setze Booking.status = `paid`
+- `payment_intent.payment_failed`: markiere `payment_failed`, sende Email
+
+Beispiel:
+```js
+// pages/api/webhook.js
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export default async function handler(req,res){
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try{
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  }catch(err){
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  switch(event.type){
+    case 'setup_intent.succeeded':
+      // save payment_method to DB
+      break;
+    case 'payment_intent.succeeded':
+      // mark booking paid
+      break;
+    case 'payment_intent.payment_failed':
+      // notify student
+      break;
+  }
+  res.json({received:true});
+}
+```
+
+---
+
+## UX-Considerationen
+
+- Beim Speichern der Karte klar kommunizieren: "Es wird noch nichts abgebucht. Wir speichern Ihre Zahlungsdaten und belasten diese erst 24h vor dem Termin."
+- Falls ein Lehrer bestätigt und später absagt: sende sofort eine Nachricht an den Schüler, dass **keine Abbuchung** erfolgt ist bzw. womöglich Rückerstattung, falls schon bezahlt.
+- Für Fälle in denen SCA (3D Secure) erforderlich wird: sende eine klare Anweisung + Link zur Seite, wo der Student die Zahlung autorisieren kann.
+
+---
+
+## Fehlerfälle & Edge-Cases
+
+- **Payment fails off_session** → markiere Booking `payment_failed`, versuche nochmal (1 Retry mit Backoff), wenn weiterhin fail → sende Link an Student.
+- **Student löst Zahlung nicht aus (bei requires_action)** → nach X Stunden markiere Booking `payment_failed` und evtl. informiere Lehrer.
+- **Teacher cancels after capture** → erstelle Refund; Gebühren bleiben (Stripe behält Processing-Fee). Informiere Support.
+
+---
+
+## Sicherheit & Compliance
+
+- Nutze Stripe Elements / Stripe.js — niemals Kartendaten über deinen Server direkt leiten.
+- Sichere Webhook-Endpoint mit `stripe-signature` Prüfung.
+- DSGVO: sichere Speicherung personenbezogener Daten in deiner DB und nur notwendige Felder speichern.
+
+---
+
+## To-Do / Implementations-Checkliste (Prio)
+
+1. Stripe Konto config + API Keys + Webhook secret
+2. DB + Prisma Schema + Migrations
+3. Endpoint: create-setup-intent + frontend confirmCardSetup flow
+4. Webhook endpoint
+5. Booking flow + teacher confirmation UI
+6. Scheduler (cron) zum Aufrufen von attempt-charge 24h vor Termin
+7. Handling für `requires_action` (email + action page)
+8. Tests (Karten: 4000 0025 0000 3155  — test cards for SCA)
+
+---
+
+## Beispiel-Links (Dokumentation) — (für Entwicklerreferenz)
+- Stripe SetupIntents: https://stripe.com/docs/payments/setup-intents
+- Save and reuse cards: https://stripe.com/docs/payments/save-and-reuse
+- Capture later (PaymentIntents manual capture): https://stripe.com/docs/payments/capture-later
+- Off-session payments: https://stripe.com/docs/payments/charging-saved-cards
+
+---

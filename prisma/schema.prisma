@@ -1,0 +1,356 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum SchoolTrack {
+  AHS
+  BHS
+}
+
+enum SchoolLevel {
+  UNTERSTUFE
+  OBERSTUFE
+}
+
+enum SchoolForm {
+  // ✅ "Alle" möglich
+  ALL
+
+  // --- AHS ---
+  AHS_GYMNASIUM
+  AHS_REALGYMNASIUM
+  AHS_WK_REALGYMNASIUM
+  AHS_BORG
+  AHS_SCHWERPUNKT
+
+  // --- BHS ---
+  BHS_HTL
+  BHS_HAK
+  BHS_HLW
+  BHS_MODE
+  BHS_KUNST_GESTALTUNG
+  BHS_TOURISMUS
+  BHS_SOZIALPAED
+  BHS_LAND_FORST
+
+  OTHER
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  password         String
+  name             String?
+  role             String   @default("student")
+  stripeCustomerId String?
+  createdAt        DateTime @default(now())
+
+  schoolTrack SchoolTrack?
+  schoolForm  SchoolForm?
+  schoolName  String?
+  level       SchoolLevel?
+  grade       Int?
+
+  profilePicture String?
+  address        String?
+
+  bookings            Booking[]                @relation("studentBookings")
+  ratings             TeacherRating[]
+  passwordResetTokens UserPasswordResetToken[]
+
+  @@index([email])
+  @@index([schoolTrack, schoolForm, level, grade])
+}
+
+model Teacher {
+  id    String @id @default(uuid())
+  name  String
+  email String @unique
+
+  // Übergang: kommt aus deinem bisherigen UI ("Mathematik, Englisch")
+  subject String
+
+  password           String
+  mustChangePassword Boolean @default(true)
+
+  profilePicture String?
+  address        String?
+  description    String?
+  taxNumber      String?
+
+  // Stufen/Schultyp-Einschraenkungen (gesetzt vom Admin beim Anlegen)
+  unterstufeOnly Boolean @default(false)
+  schoolTrack    String  @default("BOTH")   // AHS / BHS / BOTH
+  allowedForms   String? // JSON-Array z.B. ["AHS_GYMNASIUM","BHS_HTL"]
+
+  stripeConnectAccountId String?
+  stripeConnectOnboarded Boolean @default(false)
+
+  bookings            Booking[]            @relation("teacherBookings")
+  passwordResetTokens PasswordResetToken[]
+  chat                Chat[]
+  availabilities      Availability[]
+  offers              TeachingOffer[]
+  unavailabilities    TeacherUnavailability[]
+  ratings             TeacherRating[]
+  weeklySchedule      TeacherWeeklySchedule[]
+  payouts             TeacherPayout[]
+
+  @@index([email])
+}
+
+model TeacherPayout {
+  id               String   @id @default(cuid())
+  teacherId        String
+  amountCents      Int
+  stripeTransferId String?
+  createdAt        DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+}
+
+model Subject {
+  id   String @id @default(uuid())
+  name String @unique
+
+  offers TeachingOffer[]
+
+  @@index([name])
+}
+
+model TeachingOffer {
+  id String @id @default(uuid())
+
+  teacherId String
+  subjectId String
+
+  schoolTrack SchoolTrack
+  schoolForm  SchoolForm // ✅ kann ALL sein
+  level       SchoolLevel
+
+  minGrade Int
+  maxGrade Int
+
+  createdAt DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  // ✅ Gegenrelation für Availability
+  availabilities Availability[]
+
+  // verhindert exakt doppelte Angebote
+  @@unique([teacherId, subjectId, schoolForm, level, minGrade, maxGrade])
+  @@index([teacherId])
+  @@index([subjectId])
+  // Für Filter/Suche nach Zielgruppe
+  @@index([schoolTrack, schoolForm, level, minGrade, maxGrade])
+}
+
+model Availability {
+  id        String   @id @default(uuid())
+  teacherId String
+  date      DateTime
+  start     String
+  end       String
+
+  // ✅ Angebot optional (null = "für alle / nicht zugeordnet")
+  offerId String?
+  offer   TeachingOffer? @relation(fields: [offerId], references: [id], onDelete: SetNull)
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  // ✅ FIX: Gegenrelation zu Booking (mit RELATIONSNAME!)
+  bookings Booking[] @relation("BookingAvailability")
+
+  @@index([teacherId])
+  @@index([offerId])
+  @@index([date])
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  studentId String
+  teacherId String
+  start     DateTime
+  end       DateTime
+
+  priceCents Int
+  currency   String   @default("eur")
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  note       String?
+
+  stripeCustomerId      String?
+  stripePaymentMethodId String?
+  stripeSetupIntentId   String?
+  stripePaymentIntentId String?
+
+  student User    @relation("studentBookings", fields: [studentId], references: [id])
+  teacher Teacher @relation("teacherBookings", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  // ✅ FIX: gleiche Relation wie in Availability.bookings
+  availabilityId String?
+  availability   Availability? @relation("BookingAvailability", fields: [availabilityId], references: [id], onDelete: SetNull)
+
+  // ✅ OPTIONAL aber sauber: Chat kann auf Booking zeigen
+  chats Chat[]
+
+  @@index([studentId])
+  @@index([teacherId])
+  @@index([start])
+  @@index([availabilityId])
+}
+
+model TeacherRating {
+  id        String   @id @default(uuid())
+  teacherId String
+  studentId String
+  stars     Int      // 1–5
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, studentId])
+  @@index([teacherId])
+}
+
+model TeacherUnavailability {
+  id        String   @id @default(uuid())
+  teacherId String
+  fromDate  DateTime
+  toDate    DateTime
+  note      String?
+  createdAt DateTime @default(now())
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([fromDate, toDate])
+}
+
+model TeacherWeeklySchedule {
+  id        String  @id @default(cuid())
+  teacherId String
+  weekday   Int     // 0=Montag, 1=Dienstag, ..., 6=Sonntag
+  fromTime  String  // "09:00"
+  toTime    String  // "18:00"
+  active    Boolean @default(true)
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, weekday])
+  @@index([teacherId])
+}
+
+model ErrorLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  filepath  String
+  errorCode String
+  errorText String
+
+  @@index([createdAt])
+}
+
+model TeacherApplication {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  subject     String?
+  letter      String?
+  filePath    String?
+  schoolTrack String?  // AHS / BHS / BOTH
+  levelPref   String?  // UNTERSTUFE / OBERSTUFE / BOTH
+  schoolForms String?  // JSON-Array z.B. ["AHS_GYMNASIUM","BHS_HTL"]
+  createdAt   DateTime @default(now())
+  status      String   @default("new")  // new | contract_sent | active | rejected
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+
+  @@index([teacherId])
+  @@index([expiresAt])
+}
+
+model UserPasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Chat {
+  id           String @id @default(uuid())
+  teacherId    String
+  studentEmail String
+
+  // ✅ OPTIONAL Relation zu Booking (wenn du’s behalten willst)
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  teacherLastRead DateTime?
+  studentLastRead DateTime?
+
+  messages ChatMessage[]
+  teacher  Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([studentEmail])
+  @@index([bookingId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  chatId    String
+  sender    String
+  text      String
+  createdAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([createdAt])
+}
+
+model PlatformSettings {
+  id           String   @id @default("default")
+  priceMin     Float    @default(25)
+  priceMax     Float    @default(45)
+  priceN       Float    @default(15)
+  teacherShare Float    @default(0.70)
+
+  // Geplante Änderungen (werden aktiv sobald pendingEffectiveFrom <= now)
+  pendingPriceMin      Float?
+  pendingPriceMax      Float?
+  pendingPriceN        Float?
+  pendingTeacherShare  Float?
+  pendingEffectiveFrom DateTime?
+
+  updatedAt    DateTime @updatedAt
+}

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Werkvertrag – LernApp e.U.</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 11pt; }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      color: #111;
+      background: #fff;
+      line-height: 1.65;
+    }
+
+    /* ── Page Layout ── */
+    .page {
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 22mm 22mm 25mm 22mm;
+    }
+
+    /* ── Header / Letterhead ── */
+    .letterhead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #1a3c6e;
+      padding-bottom: 10px;
+      margin-bottom: 24px;
+    }
+    .letterhead-left h1 {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #1a3c6e;
+      letter-spacing: 0.5px;
+    }
+    .letterhead-left p {
+      font-size: 8.5pt;
+      color: #555;
+      margin-top: 2px;
+    }
+    .letterhead-right {
+      text-align: right;
+      font-size: 8.5pt;
+      color: #555;
+    }
+
+    /* ── Document Title ── */
+    .doc-title {
+      text-align: center;
+      margin: 28px 0 6px 0;
+    }
+    .doc-title h2 {
+      font-size: 14pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #1a3c6e;
+    }
+    .doc-title .subtitle {
+      font-size: 10pt;
+      color: #444;
+      margin-top: 3px;
+    }
+    .doc-divider {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 16px 0 24px 0;
+    }
+
+    /* ── Parties Box ── */
+    .parties {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .party-box {
+      border: 1px solid #c8d4e8;
+      border-radius: 4px;
+      padding: 12px 14px;
+      background: #f7f9fc;
+    }
+    .party-box .party-label {
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #1a3c6e;
+      margin-bottom: 6px;
+    }
+    .party-box p {
+      font-size: 9.5pt;
+      line-height: 1.6;
+    }
+    .field {
+      border-bottom: 1px solid #888;
+      display: inline-block;
+      min-width: 150px;
+      color: #333;
+    }
+    .field-long {
+      border-bottom: 1px solid #888;
+      display: inline-block;
+      min-width: 230px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      margin-bottom: 18px;
+    }
+    .section h3 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #1a3c6e;
+      margin-bottom: 6px;
+      border-left: 3px solid #1a3c6e;
+      padding-left: 7px;
+    }
+    .section p, .section li {
+      font-size: 9.5pt;
+      margin-bottom: 5px;
+    }
+    .section ol {
+      margin-left: 20px;
+    }
+    .section ol li {
+      margin-bottom: 4px;
+    }
+    .section ul {
+      margin-left: 18px;
+      list-style: disc;
+    }
+
+    /* ── Highlight Box ── */
+    .highlight-box {
+      background: #eef2fb;
+      border-left: 4px solid #1a3c6e;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 9.5pt;
+    }
+    .warning-box {
+      background: #fff8e6;
+      border-left: 4px solid #e6a817;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 9.5pt;
+    }
+
+    /* ── AVV Section ── */
+    .avv-section {
+      margin-top: 32px;
+      border-top: 2px solid #1a3c6e;
+      padding-top: 18px;
+    }
+    .avv-title {
+      text-align: center;
+      font-size: 12pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #1a3c6e;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Signature Block ── */
+    .signature-block {
+      margin-top: 36px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+    .sig-box {
+      font-size: 9pt;
+    }
+    .sig-line {
+      border-top: 1px solid #444;
+      margin-top: 48px;
+      padding-top: 5px;
+    }
+    .sig-label {
+      color: #555;
+      font-size: 8.5pt;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 30px;
+      border-top: 1px solid #ccc;
+      padding-top: 8px;
+      font-size: 7.5pt;
+      color: #888;
+      text-align: center;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { font-size: 10pt; }
+      .page { padding: 15mm 18mm 20mm 18mm; }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+    }
+
+    /* ── Print Button (screen only) ── */
+    .print-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #1a3c6e;
+      color: #fff;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+      z-index: 100;
+    }
+    .print-bar button {
+      background: #fff;
+      color: #1a3c6e;
+      border: none;
+      padding: 6px 20px;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 10pt;
+    }
+    @media print { .print-bar { display: none; } }
+    body { padding-top: 44px; }
+    @media print { body { padding-top: 0; } }
+  </style>
+</head>
+<body>
+
+<div class="print-bar no-print">
+  <span>LernApp – Lehrervertrag (Werkvertrag + AVV) &nbsp;|&nbsp; Datei: Lehrervertrag-LernApp.html</span>
+  <button onclick="window.print()">Als PDF speichern / Drucken</button>
+</div>
+
+<div class="page">
+
+  <!-- ══ LETTERHEAD ══ -->
+  <div class="letterhead">
+    <div class="letterhead-left">
+      <h1>LernApp</h1>
+      <p>LernApp e.U. &nbsp;|&nbsp; lerneazy.office@gmail.com &nbsp;|&nbsp; lernapp.at</p>
+    </div>
+    <div class="letterhead-right">
+      <p>Wien, den <span class="field" style="min-width:100px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+      <p style="margin-top:4px;">Vertragsnr.: <span class="field" style="min-width:80px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+    </div>
+  </div>
+
+  <!-- ══ TITLE ══ -->
+  <div class="doc-title">
+    <h2>Werkvertrag</h2>
+    <div class="subtitle">für selbstständige Lehrkräfte &nbsp;·&nbsp; Provisionsbasis &nbsp;·&nbsp; inkl. Auftragsverarbeitungsvertrag (DSGVO Art.&nbsp;28)</div>
+  </div>
+  <hr class="doc-divider" />
+
+  <!-- ══ PARTIES ══ -->
+  <div class="parties">
+    <div class="party-box">
+      <div class="party-label">Auftraggeber</div>
+      <p>
+        <strong>LernApp e.U.</strong><br />
+        [Adresse eintragen]<br />
+        Wien, Österreich<br />
+        E-Mail: lerneazy.office@gmail.com<br />
+        UID: [UID-Nummer]<br />
+        (im Folgenden „<strong>Plattform</strong>")
+      </p>
+    </div>
+    <div class="party-box">
+      <div class="party-label">Auftragnehmer (Lehrkraft)</div>
+      <p>
+        Name: <span class="field-long">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><br />
+        Adresse: <span class="field-long">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><br />
+        E-Mail: <span class="field-long">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><br />
+        SVNR / UID: <span class="field" style="min-width:130px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><br />
+        Gewerbeschein: &#9744; vorhanden &nbsp; &#9744; wird nachgereicht<br />
+        (im Folgenden „<strong>Lehrkraft</strong>")
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ §1 – VERTRAGSGEGENSTAND ══ -->
+  <div class="section">
+    <h3>§ 1 – Vertragsgegenstand</h3>
+    <p>
+      Die Plattform betreibt eine digitale Vermittlungsplattform (lernapp.at), über die Schülerinnen und
+      Schüler qualifizierte Nachhilfelehrkräfte buchen können. Die Lehrkraft erbringt auf Basis dieses
+      Werkvertrags selbstständige Nachhilfe­leistungen an von der Plattform vermittelte Schülerinnen
+      und Schüler. Die Plattform übernimmt dabei ausschließlich die Vermittlung und die
+      Zahlungsabwicklung; sie ist nicht Vertragspartner des eigentlichen Unterrichts­verhältnisses.
+    </p>
+  </div>
+
+  <!-- ══ §2 – RECHTLICHE STELLUNG ══ -->
+  <div class="section">
+    <h3>§ 2 – Rechtliche Stellung der Lehrkraft (Selbstständigkeit)</h3>
+    <ol>
+      <li>
+        Die Lehrkraft ist <strong>selbstständige Unternehmerin / selbstständiger Unternehmer</strong>
+        (Einzelunternehmen) und erbringt ihre Leistungen im Rahmen eines <strong>freien Werkvertrags</strong>.
+        Es besteht kein Dienstverhältnis (weder Angestellten- noch freies Dienstverhältnis) zur Plattform.
+      </li>
+      <li>
+        Die Lehrkraft unterliegt keiner persönlichen Weisungsgebundenheit hinsichtlich Arbeitszeit,
+        Arbeitsort oder -organisation. Sie ist frei in der Gestaltung ihrer Leistungserbringung,
+        solange die vereinbarten Buchungstermine eingehalten werden.
+      </li>
+      <li>
+        Die Lehrkraft ist ausdrücklich berechtigt und wird ausdrücklich dazu ermutigt, gleichartige
+        Tätigkeiten auch für <strong>andere Auftraggeber</strong> zu erbringen. Eine Exklusivitätsverpflichtung
+        besteht nicht.
+      </li>
+      <li>
+        Die Lehrkraft trägt das volle unternehmerische Risiko für ihre Tätigkeit. Sie ist für die
+        Entrichtung ihrer eigenen Sozialversicherungsbeiträge (SVS), Einkommensteuer und etwaiger
+        Umsatzsteuer selbst verantwortlich.
+      </li>
+      <li>
+        Die Lehrkraft ist verpflichtet, die für ihre Tätigkeit erforderliche <strong>gewerberechtliche
+        Berechtigung</strong> (Gewerbeschein) zu besitzen und aufrechtzuerhalten, soweit dies gesetzlich
+        erforderlich ist. Eine Kopie ist der Plattform auf Anfrage vorzulegen.
+      </li>
+    </ol>
+    <div class="warning-box">
+      <strong>Hinweis:</strong> Beide Parteien nehmen zur Kenntnis, dass die österreichischen Behörden
+      (Finanzamt, SVS) das Vorliegen einer Scheinselbstständigkeit prüfen können. Die Vertragsparteien
+      gestalten ihre Zusammenarbeit ausdrücklich so, dass die tatsächlichen Verhältnisse den Merkmalen
+      eines Werkvertrags entsprechen.
+    </div>
+  </div>
+
+  <!-- ══ §3 – LEISTUNGSPFLICHTEN ══ -->
+  <div class="section">
+    <h3>§ 3 – Pflichten der Lehrkraft</h3>
+    <ol>
+      <li>
+        Die Lehrkraft verpflichtet sich, gebuchte Nachhilfestunden <strong>pünktlich und in
+        angemessener Qualität</strong> zu erbringen.
+      </li>
+      <li>
+        Bei Verhinderung ist der Schüler <strong>spätestens 24 Stunden vor dem Termin</strong> zu
+        informieren und gleichzeitig die Plattform per E-Mail (lerneazy.office@gmail.com) in Kenntnis zu setzen.
+        Im Falle kurzfristiger Stornierungen behält sich die Plattform vor, anfallende Rückerstattungskosten
+        anteilig zu verrechnen (vgl. § 5 Abs. 3).
+      </li>
+      <li>
+        Die Lehrkraft versichert, über die erforderliche <strong>fachliche Qualifikation</strong> für die
+        angebotenen Fächer zu verfügen und etwaige Änderungen ihrer Qualifikation unverzüglich mitzuteilen.
+      </li>
+      <li>
+        Die Lehrkraft verpflichtet sich, die <strong>Plattformregeln</strong> (Nutzungsbedingungen auf
+        lernapp.at) einzuhalten und Schülerinnen und Schüler respektvoll und professionell zu behandeln.
+      </li>
+      <li>
+        Die Lehrkraft ist verpflichtet, ihr <strong>Verfügbarkeitsprofil</strong> auf der Plattform
+        stets aktuell zu halten und keine Buchungen anzunehmen, die sie nicht wahrnehmen kann.
+      </li>
+      <li>
+        Die Lehrkraft erklärt sich damit einverstanden, dass ihr <strong>Name, ihr Profilbild sowie ihre
+        angebotenen Fächer und Bewertungen</strong> öffentlich auf der Plattform (lernapp.at) angezeigt
+        werden. Dies dient der Vermittlung von Nachhilfeleistungen und ist Bestandteil des Vertragszwecks
+        gemäß Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b DSGVO. Die Lehrkraft kann ihr Profilbild jederzeit
+        in ihrem Profileinstellungen entfernen oder ändern.
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══ §4 – VERGÜTUNG UND ABRECHNUNG ══ -->
+  <div class="section">
+    <h3>§ 4 – Vergütung, Provision und Abrechnung</h3>
+    <ol>
+      <li>
+        Der von Schülerinnen und Schülern gezahlte <strong>Stundenpreis ist variabel</strong>
+        und wird nach folgender Formel berechnet:<br />
+        <br />
+        <span style="font-family:monospace; font-size:9pt; background:#f0f4ff; padding:3px 8px; border-radius:3px; display:inline-block;">
+          Preis (EUR/h) = 25 + 20 &times; (1 &minus; e<sup>&minus;x/15</sup>) &times; a/5
+        </span><br />
+        <br />
+        Dabei gilt: <em>x</em> = Anzahl der Bewertungen der Lehrkraft auf der Plattform;
+        <em>a</em> = Durchschnittsbewertung (Skala 1–5; Mindestwert 1 bei noch keinen Bewertungen).
+        Neue Lehrkräfte starten bei <strong>25,00&nbsp;EUR/h</strong>. Mit zunehmenden
+        Top-Bewertungen (a&nbsp;=&nbsp;5) konvergiert der Preis gegen <strong>45,00&nbsp;EUR/h</strong>
+        pro 60-Minuten-Einheit
+        (Endpreis inkl. aller Abgaben auf Schülerseite). Die Plattform kann dieses Preismodell nach
+        § 9 Abs. 1 ändern.
+      </li>
+      <li>
+        Die Lehrkraft erhält <strong>70&nbsp;% des von der Plattform kassierten Bruttobetrags</strong>
+        pro abgeschlossener Buchung. Die verbleibenden 30&nbsp;% verbleiben als Plattformprovision
+        bei der Plattform zur Deckung von Betrieb, Zahlungsabwicklung, Marketing und Infrastruktur.
+      </li>
+      <li>
+        Die Auszahlung erfolgt über <strong>Stripe Connect</strong>. Die Lehrkraft verpflichtet
+        sich, ein Stripe-Express-Konto zu eröffnen und die dafür notwendigen Identifizierungsschritte
+        abzuschließen. Bankdaten werden ausschließlich an Stripe übermittelt und dort verarbeitet.
+      </li>
+      <li>
+        Auszahlungen erfolgen <strong>nach Bestätigung der Buchung als abgeschlossen</strong>
+        (Status „paid"), in der Regel innerhalb von 2–5 Werktagen nach Stripe-Freigabe.
+      </li>
+      <li>
+        <strong>Rechnungslegung:</strong> Sofern die Lehrkraft umsatzsteuerpflichtig ist
+        (Überschreiten der Kleinunternehmergrenze von derzeit 55.000&nbsp;EUR netto/Jahr gemäß
+        §&nbsp;6 Abs.&nbsp;1 Z&nbsp;27 UStG), hat sie der Plattform eine ordnungsgemäße
+        Rechnung mit USt-Ausweis zu legen. Kleinunternehmerinnen/Kleinunternehmer stellen
+        Rechnungen ohne USt-Ausweis unter Hinweis auf die Kleinunternehmerregelung aus.
+        Die Plattform kann auf Wunsch monatliche Abrechnungsübersichten bereitstellen.
+      </li>
+      <li>
+        Im Falle einer berechtigten Rückerstattung an den Schüler (Stornierung durch die
+        Lehrkraft, technische Fehler) wird der anteilige Lehrkraft-Anteil <strong>nicht
+        ausbezahlt</strong> bzw. mit zukünftigen Auszahlungen verrechnet.
+      </li>
+    </ol>
+    <div class="highlight-box">
+      <strong>Vergütungsmodell:</strong><br />
+      Schülerpreis: variabel (25,00–45,00&nbsp;EUR/h je nach Bewertungen der Lehrkraft)<br />
+      Lehrkraft-Anteil: <strong>70&nbsp;%</strong> des kassierten Betrags &nbsp;|&nbsp;
+      Plattformprovision: <strong>30&nbsp;%</strong> des kassierten Betrags<br />
+      <span style="font-size:8.5pt; color:#555;">
+        Beispiele: bei 25,00&nbsp;EUR/h → Lehrkraft 17,50&nbsp;EUR, Plattform 7,50&nbsp;EUR &nbsp;|&nbsp;
+        bei 45,00&nbsp;EUR/h → Lehrkraft 31,50&nbsp;EUR, Plattform 13,50&nbsp;EUR
+      </span>
+    </div>
+  </div>
+
+  <!-- ══ §5 – STORNIERUNG ══ -->
+  <div class="section">
+    <h3>§ 5 – Stornierung und Ausfall</h3>
+    <ol>
+      <li>
+        Stornierungen durch die <strong>Lehrkraft mehr als 24 Stunden vor dem Termin</strong>:
+        volle Rückerstattung an den Schüler; kein Anspruch der Lehrkraft auf Vergütung.
+      </li>
+      <li>
+        Stornierungen durch die <strong>Lehrkraft weniger als 24 Stunden vor dem Termin</strong>:
+        volle Rückerstattung an den Schüler; die Plattform behält sich vor, der Lehrkraft eine
+        <strong>Ausfallsgebühr von bis zu 50&nbsp;% des Lehrkraft-Anteils</strong> der betroffenen
+        Stunde zu verrechnen (Schadensminimierung). Diese wird mit künftigen Auszahlungen gegenverrechnet.
+      </li>
+      <li>
+        Bei <strong>wiederholten kurzfristigen Stornierungen</strong> (mehr als 3× innerhalb von
+        30 Tagen) ist die Plattform berechtigt, das Profil der Lehrkraft vorübergehend zu sperren
+        oder den Vertrag außerordentlich zu kündigen.
+      </li>
+      <li>
+        Stornierungen durch den <strong>Schüler</strong> vor Zahlung: kein Anspruch der Lehrkraft.
+        Stornierungen durch den Schüler nach Zahlung: gemäß den Schüler-AGB; etwaige
+        Rückerstattungen reduzieren den Auszahlungsanspruch der Lehrkraft.
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══ §6 – HAFTUNG ══ -->
+  <div class="section">
+    <h3>§ 6 – Haftung</h3>
+    <ol>
+      <li>
+        Die Lehrkraft haftet für die <strong>ordnungsgemäße Erbringung ihrer Leistungen</strong>
+        gegenüber den Schülerinnen und Schülern selbst. Die Plattform übernimmt keine Haftung für
+        die fachliche Qualität des Unterrichts.
+      </li>
+      <li>
+        Die Lehrkraft stellt die Plattform von sämtlichen Ansprüchen Dritter (insbesondere der
+        Schülerinnen und Schüler) <strong>schad- und klaglos</strong>, die auf einer schuldhaften
+        Pflichtverletzung der Lehrkraft beruhen.
+      </li>
+      <li>
+        Die Plattform haftet nur bei <strong>Vorsatz und grober Fahrlässigkeit</strong>. Eine Haftung
+        für technische Ausfälle, die außerhalb des Einflussbereichs der Plattform liegen (z.&nbsp;B.
+        Stripe-Ausfälle, Internetstörungen), ist ausgeschlossen.
+      </li>
+      <li>
+        Die Plattform haftet nicht für steuerliche oder sozialversicherungsrechtliche Konsequenzen,
+        die sich aus der Tätigkeit der Lehrkraft ergeben. Die Lehrkraft ist selbst verantwortlich
+        für die korrekte Abführung aller Abgaben.
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══ §7 – VERSCHWIEGENHEIT ══ -->
+  <div class="section">
+    <h3>§ 7 – Vertraulichkeit und Verschwiegenheit</h3>
+    <ol>
+      <li>
+        Die Lehrkraft verpflichtet sich, alle im Rahmen der Plattformtätigkeit erlangten
+        <strong>Informationen über Schülerinnen und Schüler</strong> (Namen, Kontaktdaten,
+        schulische Leistungen, persönliche Umstände) streng vertraulich zu behandeln und nicht
+        an Dritte weiterzugeben.
+      </li>
+      <li>
+        Diese Schweigepflicht gilt auch nach Beendigung des Vertrags unbefristet weiter.
+      </li>
+      <li>
+        Eine <strong>Direktkontaktaufnahme</strong> mit Schülerinnen und Schülern außerhalb der
+        Plattform zum Zweck der Umgehung der Plattformprovision ist verboten und berechtigt die
+        Plattform zur fristlosen Kündigung sowie zur Geltendmachung von Schadenersatz in Höhe
+        der entgangenen Provision (Mindestbetrag: 500&nbsp;EUR pauschal).
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══ §8 – LAUFZEIT UND KÜNDIGUNG ══ -->
+  <div class="section">
+    <h3>§ 8 – Laufzeit und Kündigung</h3>
+    <ol>
+      <li>
+        Dieser Vertrag wird auf <strong>unbestimmte Zeit</strong> abgeschlossen.
+      </li>
+      <li>
+        Jede Vertragspartei kann den Vertrag mit einer <strong>Kündigungsfrist von 4 Wochen</strong>
+        zum Monatsende schriftlich per E-Mail kündigen.
+      </li>
+      <li>
+        Das Recht zur <strong>außerordentlichen fristlosen Kündigung</strong> aus wichtigem Grund
+        bleibt unberührt. Wichtige Gründe für die Plattform sind insbesondere:
+        <ul style="margin-top:5px;">
+          <li>Wiederholte unbegründete Stornierungen (§ 5 Abs. 3)</li>
+          <li>Verstoß gegen die Vertraulichkeitspflicht (§ 7)</li>
+          <li>Schwerwiegende Beschwerden von Schülerinnen/Schülern</li>
+          <li>Verlust der gewerberechtlichen Berechtigung</li>
+          <li>Falsche Angaben bei Vertragsabschluss</li>
+        </ul>
+      </li>
+      <li>
+        Nach Kündigung werden bereits bestätigte Buchungen noch abgewickelt (max. 4 Wochen),
+        sofern die Lehrkraft dem nicht widerspricht.
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══ §9 – ÄNDERUNGEN ══ -->
+  <div class="section">
+    <h3>§ 9 – Vertragsänderungen</h3>
+    <ol>
+      <li>
+        Die Plattform ist berechtigt, die Provisionssätze (§&nbsp;4) und den Stundenpreis mit
+        einer <strong>Ankündigungsfrist von mindestens 4 Wochen</strong> per E-Mail zu ändern.
+        Stimmt die Lehrkraft der Änderung nicht zu, kann sie den Vertrag bis zum Inkrafttreten
+        der Änderung kündigen (§&nbsp;8 Abs.&nbsp;2).
+      </li>
+      <li>
+        Sonstige wesentliche Vertragsänderungen bedürfen der schriftlichen Zustimmung beider
+        Parteien.
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══ §10 – SONSTIGES ══ -->
+  <div class="section">
+    <h3>§ 10 – Anwendbares Recht, Gerichtsstand und Salvatorische Klausel</h3>
+    <ol>
+      <li>
+        Es gilt <strong>österreichisches Recht</strong> unter Ausschluss des UN-Kaufrechts und
+        der Kollisionsnormen des IPRG.
+      </li>
+      <li>
+        Gerichtsstand für alle Streitigkeiten aus diesem Vertrag ist <strong>Wien</strong>
+        (zuständiges Bezirks- oder Handelsgericht je nach Streitwert).
+      </li>
+      <li>
+        Sollten einzelne Bestimmungen unwirksam sein oder werden, bleibt die Wirksamkeit der
+        übrigen Bestimmungen unberührt. Die unwirksame Bestimmung ist durch eine dem
+        wirtschaftlichen Zweck am nächsten kommende wirksame Regelung zu ersetzen.
+      </li>
+      <li>
+        Mündliche Nebenabreden bestehen nicht. Änderungen und Ergänzungen bedürfen der
+        Schriftform (E-Mail genügt).
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- ══ AUFTRAGSVERARBEITUNGSVERTRAG (AVV) Art. 28 ══  -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="avv-section page-break">
+
+    <div class="avv-title">
+      Anhang: Auftragsverarbeitungsvertrag (AVV)<br />
+      <span style="font-size:9pt;font-weight:400;text-transform:none;">gemäß Art. 28 DSGVO – integraler Bestandteil des Werkvertrags</span>
+    </div>
+
+    <!-- AVV §1 -->
+    <div class="section">
+      <h3>AVV § 1 – Gegenstand und Dauer der Auftragsverarbeitung</h3>
+      <ol>
+        <li>
+          Die Lehrkraft verarbeitet im Rahmen der Erbringung ihrer Leistungen
+          <strong>personenbezogene Daten von Schülerinnen und Schülern</strong> (im Folgenden
+          „Betroffene"), die der Plattform als Verantwortlichem im Sinne des Art.&nbsp;4
+          Z&nbsp;7 DSGVO zuzuordnen sind. Die Lehrkraft ist dabei Auftragsverarbeiterin
+          im Sinne des Art.&nbsp;4 Z&nbsp;8 DSGVO.
+        </li>
+        <li>
+          Die Auftragsverarbeitung dauert so lange, wie der Werkvertrag in Kraft ist.
+        </li>
+      </ol>
+    </div>
+
+    <!-- AVV §2 -->
+    <div class="section">
+      <h3>AVV § 2 – Art der verarbeiteten Daten und Kategorien von Betroffenen</h3>
+      <p><strong>Betroffene Personen:</strong> Schülerinnen und Schüler, die über lernapp.at gebucht haben.</p>
+      <p style="margin-top:6px;"><strong>Verarbeitete Datenkategorien:</strong></p>
+      <ul>
+        <li>Name, E-Mail-Adresse der Schülerin / des Schülers</li>
+        <li>Schulinformationen (Schultyp, Klasse, Fach)</li>
+        <li>Buchungsdaten (Termin, Dauer, Fach, optionale Lernnotiz)</li>
+        <li>Chat-Nachrichten innerhalb der Plattform</li>
+      </ul>
+      <p style="margin-top:6px;"><strong>Zweck der Verarbeitung:</strong> Erbringung der vereinbarten Nachhilfeleistung (Unterricht, Terminkoordination, Kommunikation mit Schülerin/Schüler).</p>
+    </div>
+
+    <!-- AVV §3 -->
+    <div class="section">
+      <h3>AVV § 3 – Pflichten der Lehrkraft als Auftragsverarbeiterin</h3>
+      <ol>
+        <li>
+          Die Lehrkraft verarbeitet personenbezogene Daten ausschließlich
+          <strong>auf dokumentierte Weisung</strong> der Plattform (dieser AVV und die
+          Plattformregeln stellen solche Weisungen dar) und nicht für eigene Zwecke.
+        </li>
+        <li>
+          Die Lehrkraft gewährleistet, dass alle Personen, die Zugang zu den Daten haben,
+          einer <strong>Verschwiegenheitsverpflichtung</strong> unterliegen oder einer
+          gesetzlichen Verschwiegenheitspflicht unterworfen sind.
+        </li>
+        <li>
+          Die Lehrkraft ergreift alle erforderlichen <strong>technischen und organisatorischen
+          Maßnahmen</strong> gemäß Art.&nbsp;32 DSGVO, insbesondere:
+          <ul style="margin-top:4px;">
+            <li>Keine Speicherung von Schülerdaten auf privaten, ungesicherten Geräten</li>
+            <li>Keine Weitergabe von Zugangsdaten zur Plattform an Dritte</li>
+            <li>Umgehende Meldung von Datenschutzvorfällen an lerneazy.office@gmail.com</li>
+          </ul>
+        </li>
+        <li>
+          Die Lehrkraft unterstützt die Plattform bei der Erfüllung von
+          <strong>Betroffenenrechten</strong> (Auskunft, Löschung etc.) sowie bei der Erfüllung
+          der Pflichten gemäß Art.&nbsp;32–36 DSGVO.
+        </li>
+        <li>
+          Nach Beendigung der Auftragsverarbeitung sind alle personenbezogenen Daten der
+          Betroffenen (inkl. angefertigte Kopien oder Notizen) zu <strong>löschen oder
+          zurückzugeben</strong>, sofern keine gesetzliche Aufbewahrungspflicht entgegensteht.
+        </li>
+        <li>
+          Die Lehrkraft stellt der Plattform alle erforderlichen Informationen zur Verfügung, um
+          die Einhaltung dieser Verpflichtungen <strong>nachweisen</strong> zu können, und
+          gestattet Überprüfungen durch die Plattform oder beauftragte Prüfer.
+        </li>
+      </ol>
+    </div>
+
+    <!-- AVV §4 -->
+    <div class="section">
+      <h3>AVV § 4 – Keine Weitergabe an Subauftragsverarbeiter</h3>
+      <p>
+        Die Lehrkraft darf die ihr im Rahmen dieses Vertrags anvertrauten personenbezogenen
+        Daten <strong>nicht an Dritte (Subauftragsverarbeiter) weitergeben</strong>, ohne vorherige
+        schriftliche Genehmigung der Plattform. Standardmäßige Kommunikationsdienste (E-Mail,
+        Videotelefonie) für die Durchführung des Unterrichts gelten als genehmigt, sofern diese
+        den Anforderungen der DSGVO entsprechen.
+      </p>
+    </div>
+
+    <!-- AVV §5 -->
+    <div class="section">
+      <h3>AVV § 5 – Datenschutzverletzungen</h3>
+      <p>
+        Die Lehrkraft meldet der Plattform jeden bekannt gewordenen
+        <strong>Datenschutzvorfall</strong> (z.&nbsp;B. Verlust von Geräten mit Schülerdaten,
+        unbefugter Zugriff) <strong>unverzüglich, spätestens jedoch binnen 24 Stunden</strong>
+        nach Bekanntwerden per E-Mail an lerneazy.office@gmail.com. Die Meldung hat alle verfügbaren
+        Informationen gemäß Art.&nbsp;33 Abs.&nbsp;3 DSGVO zu enthalten.
+      </p>
+    </div>
+
+    <!-- AVV §6 -->
+    <div class="section">
+      <h3>AVV § 6 – Haftung im Datenschutzbereich</h3>
+      <p>
+        Die Lehrkraft haftet der Plattform für alle Schäden, die durch eine schuldhafte
+        Verletzung der Pflichten aus diesem AVV entstehen, einschließlich Bußgelder,
+        Schadensersatzansprüche Betroffener und Anwaltskosten, die der Plattform aufgrund einer
+        Pflichtverletzung der Lehrkraft entstehen.
+      </p>
+    </div>
+
+  </div><!-- /avv-section -->
+
+  <!-- ══ SIGNATURE BLOCK ══ -->
+  <div class="signature-block" style="margin-top:40px;">
+    <div class="sig-box">
+      <p>Wien, den <span class="field" style="min-width:120px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+      <div class="sig-line">
+        <div class="sig-label">Für LernApp e.U. (Auftraggeber)</div>
+        <div style="margin-top:3px; font-size:9pt;">[Name, Funktion]</div>
+      </div>
+    </div>
+    <div class="sig-box">
+      <p>_______, den <span class="field" style="min-width:110px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+      <div class="sig-line">
+        <div class="sig-label">Lehrkraft (Auftragnehmer/in)</div>
+        <div style="margin-top:3px; font-size:9pt;"><span class="field-long">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <div class="footer">
+    Werkvertrag + AVV · LernApp e.U. · Stand: März 2026 · Seite 1/1<br />
+    Dieser Vertrag wurde auf Basis des österreichischen ABGB, UGB, GewO, UStG, ASVG und der DSGVO (EU) 2016/679 erstellt.
+    Er ersetzt keine individuelle Rechtsberatung.
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>

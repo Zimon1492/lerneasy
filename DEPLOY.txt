@@ -1,0 +1,228 @@
+================================================================================
+  LERNAPP – DEPLOYMENT GUIDE (Vercel)
+================================================================================
+
+
+================================================================================
+  STEP 1 – CHOOSE A HOSTED DATABASE
+================================================================================
+
+  SQLite (prisma/dev.db) is a local file and cannot be used on Vercel.
+  You must migrate to a hosted PostgreSQL database before deploying.
+
+  ── Option A: Neon (recommended, free tier available) ──────────────────────
+  https://neon.tech
+  - Create a free account
+  - Create a new project → copy the connection string
+  - Looks like:
+      postgresql://user:password@ep-xyz.eu-central-1.aws.neon.tech/nerddb?sslmode=require
+  - Free tier: 0.5 GB storage, 1 compute unit
+  - Supports Prisma out of the box
+  - Best choice for small/medium apps
+
+  ── Option B: Supabase (free tier available) ───────────────────────────────
+  https://supabase.com
+  - Create a free account → new project → Settings → Database
+  - Copy the "Connection string" (URI format)
+  - Looks like:
+      postgresql://postgres:password@db.xyz.supabase.co:5432/postgres
+  - Free tier: 500 MB storage, 2 projects
+  - Also comes with a built-in admin UI for your data
+
+  ── Option C: Vercel Postgres (tight Vercel integration) ───────────────────
+  https://vercel.com/storage/postgres
+  - Only available on Vercel Pro plan ($20/month)
+  - Created directly in the Vercel dashboard → Storage → Create Database
+  - Environment variables are automatically injected into your project
+  - Connection string is set automatically (no copy/paste needed)
+  - Looks like:
+      postgres://default:password@ep-xyz.vercel-storage.com/verceldb
+
+  ── Option D: PlanetScale (MySQL, not Postgres) ────────────────────────────
+  https://planetscale.com
+  - Uses MySQL instead of PostgreSQL
+  - Requires changing provider in schema.prisma from "postgresql" to "mysql"
+  - Also requires removing some Prisma features (e.g. @db.Text instead of String)
+  - More complex migration — not recommended unless you prefer MySQL
+
+
+================================================================================
+  STEP 2 – MIGRATE PRISMA FROM SQLITE TO POSTGRESQL
+================================================================================
+
+  1. Open prisma/schema.prisma
+
+  2. Change the datasource block from:
+
+       datasource db {
+         provider = "sqlite"
+         url      = "file:./dev.db"
+       }
+
+     To:
+
+       datasource db {
+         provider = "postgresql"
+         url      = env("DATABASE_URL")
+       }
+
+  3. Add DATABASE_URL to your .env file (for local dev, pointing to your
+     hosted DB or a local Postgres instance):
+
+       DATABASE_URL="postgresql://user:password@host:5432/dbname?sslmode=require"
+
+  4. Run the Prisma migration to create all tables in the new database:
+
+       npx prisma migrate deploy
+
+     Or if you want to push the schema directly without migration history:
+
+       npm run db:push
+
+  5. (Optional) Seed the new database:
+
+       npm run db:seed
+
+  NOTE: After switching to PostgreSQL, test your app locally with the new
+  DATABASE_URL before deploying to make sure everything works.
+
+
+================================================================================
+  STEP 3 – SET UP STRIPE FOR PRODUCTION
+================================================================================
+
+  1. Go to https://dashboard.stripe.com
+  2. Switch from "Test mode" to "Live mode" (toggle top right)
+  3. Copy your live Secret Key:
+       sk_live_...
+     (replaces sk_test_... in your env)
+
+  4. Register a new Webhook endpoint:
+     - Stripe Dashboard → Developers → Webhooks → Add endpoint
+     - URL: https://yourdomain.com/api/stripe/webhook/webhook
+     - Events to listen for:
+         checkout.session.completed
+     - After saving, copy the Signing Secret:
+         whsec_...
+     (replaces your current STRIPE_WEBHOOK_SECRET)
+
+  5. For Stripe Connect (teacher payouts):
+     - Stripe Dashboard → Settings → Connect → Activate
+     - Make sure your platform profile is complete (business details, etc.)
+     - Live mode requires identity verification before transfers work
+
+
+================================================================================
+  STEP 4 – PREPARE ENVIRONMENT VARIABLES
+================================================================================
+
+  These are all variables from your .env that must be added to Vercel.
+  Change the values marked with (*) before deploying.
+
+  Variable                  | Local value              | Production value
+  --------------------------|--------------------------|----------------------------------
+  DATABASE_URL              | file:./dev.db (SQLite)   | (*) PostgreSQL connection string
+  NEXTAUTH_SECRET           | any random string        | same or new random string
+  NEXTAUTH_URL              | http://localhost:3000    | (*) https://yourdomain.com
+  NEXT_PUBLIC_BASE_URL      | http://localhost:3000    | (*) https://yourdomain.com
+  NEXT_PUBLIC_DOMAIN        | localhost:3000           | (*) yourdomain.com
+  STRIPE_SECRET_KEY         | sk_test_...              | (*) sk_live_...
+  STRIPE_WEBHOOK_SECRET     | whsec_... (test)         | (*) whsec_... (live, new)
+  CRON_SECRET               | (not set locally)        | (*) any long random string
+  ADMIN_KEY                 | your admin password      | same or stronger password
+  SMTP_HOST                 | your mail host           | same
+  SMTP_PORT                 | 465                      | same
+  SMTP_USER                 | your mail user           | same
+  SMTP_PASS                 | your mail password       | same
+  FROM_EMAIL                | your sender address      | same
+
+  To generate a secure random string for NEXTAUTH_SECRET or CRON_SECRET:
+    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+
+================================================================================
+  STEP 5 – ADD ENVIRONMENT VARIABLES TO VERCEL
+================================================================================
+
+  Option A – Vercel Dashboard (manual):
+    1. Go to https://vercel.com → your project → Settings → Environment Variables
+    2. Add each variable from the table above one by one
+    3. Set scope to "Production" (and "Preview" if needed)
+
+  Option B – Vercel CLI (faster):
+    1. Install CLI:         npm i -g vercel
+    2. Login:               vercel login
+    3. Link project:        vercel link
+    4. Push all at once:    vercel env add < .env
+       NOTE: This pushes your local .env values — make sure you have already
+       updated them to production values before running this command.
+
+
+================================================================================
+  STEP 6 – DEPLOY TO VERCEL
+================================================================================
+
+  Option A – GitHub (recommended, automatic deploys):
+    1. Push your code to a GitHub repository
+    2. Go to https://vercel.com → Add New Project → Import Git Repository
+    3. Select your repo → configure project:
+         Framework Preset: Next.js  (auto-detected)
+         Root Directory:   ./        (default)
+    4. Click Deploy
+    5. Every future push to main will trigger a new deploy automatically
+
+  Option B – Vercel CLI (manual):
+    1. Run:  vercel --prod
+    2. Follow the prompts
+    3. Vercel builds and deploys your app
+
+
+================================================================================
+  STEP 7 – AFTER DEPLOYING
+================================================================================
+
+  1. Visit your live URL and test:
+     - Student registration and login
+     - Teacher login and password setup link
+     - Booking flow (use Stripe test cards if still in test mode)
+     - Stripe webhook (check Stripe dashboard → Developers → Webhooks → logs)
+     - Cron job (check Vercel dashboard → your project → Cron Jobs tab)
+     - Chat, ratings, payout flow
+
+  2. Set up the cron job (already configured in vercel.json):
+     - Vercel will automatically pick up the crons from vercel.json
+     - Verify it appears under: Vercel Dashboard → Project → Settings → Cron Jobs
+     - The job runs daily at 03:00 UTC
+     - Requires Vercel Pro plan ($20/month) for cron support
+
+  3. Monitor errors:
+     - Vercel Dashboard → Project → Logs (real-time function logs)
+     - Admin panel → Fehler-Logs (/admin/errors) shows app-level error logs
+
+  4. File uploads (profile pictures, PDFs):
+     - Currently saved to /public/uploads/ — this is a local folder and will
+       NOT persist on Vercel (serverless functions are stateless)
+     - Before deploying: migrate file uploads to a cloud storage service:
+         * Vercel Blob:     https://vercel.com/storage/blob  (easiest)
+         * Cloudinary:      https://cloudinary.com           (free tier, image CDN)
+         * AWS S3:          https://aws.amazon.com/s3        (most flexible)
+     - Update the upload API routes to write to cloud storage instead of disk
+
+
+================================================================================
+  CHECKLIST BEFORE GOING LIVE
+================================================================================
+
+  [ ] Switched Prisma from SQLite to PostgreSQL
+  [ ] Ran prisma migrate deploy on the production database
+  [ ] Switched Stripe to live mode (live secret key + new webhook secret)
+  [ ] All environment variables added to Vercel
+  [ ] NEXTAUTH_URL and NEXT_PUBLIC_BASE_URL point to the real domain
+  [ ] CRON_SECRET set in Vercel environment variables
+  [ ] File uploads migrated to cloud storage
+  [ ] Stripe Connect platform profile completed (for teacher payouts)
+  [ ] Tested the full booking + payment flow on the live URL
+  [ ] Verified Stripe webhook is receiving events (Stripe dashboard → logs)
+  [ ] Verified cron job appears in Vercel dashboard
+
+================================================================================

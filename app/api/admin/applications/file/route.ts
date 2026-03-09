@@ -19,7 +19,11 @@ export async function GET(req: Request) {
   }
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+      },
+    });
     if (!res.ok) return new NextResponse("Datei nicht gefunden.", { status: 404 });
 
     const data = await res.arrayBuffer();

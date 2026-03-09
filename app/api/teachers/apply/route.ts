@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       }
 
       const safeName = `applications/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
-      const blob = await put(safeName, file, { access: "public" });
+      const blob = await put(safeName, file, { access: "private" });
       filePath = blob.url; // store blob URL; served via /api/admin/applications/file
     }
 

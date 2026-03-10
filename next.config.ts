@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
-    "/api/admin/applications/[id]/send-contract": ["./contracts/**/*"],
+    "app/api/admin/applications/[id]/send-contract/route": ["./contracts/**/*"],
   },
 };
 

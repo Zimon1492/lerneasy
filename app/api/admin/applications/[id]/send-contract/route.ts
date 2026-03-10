@@ -19,7 +19,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Bewerbung nicht gefunden." }, { status: 404 });
   }
 
-  const contractPath = path.join(process.cwd(), "contracts", "Werkvertrag-LernEasy_e.U_.pdf");
+  const contractPath = path.join(process.cwd(), "contracts", "Werkvertrag\u2013LernEasy_e.U_.pdf");
   const contractPdf = await fs.readFile(contractPath);
 
   const transporter = nodemailer.createTransport({
@@ -41,7 +41,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       <p>Herzliche Gruesse,<br>Das LernEasy-Team</p>`,
     attachments: [
       {
-        filename: "Werkvertrag-LernEasy_e.U_.pdf",
+        filename: "Werkvertrag\u2013LernEasy_e.U_.pdf",
         content: contractPdf,
         contentType: "application/pdf",
       },

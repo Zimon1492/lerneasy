@@ -53,6 +53,17 @@ export default function Home() {
         {/* Dunkler Overlay für Lesbarkeit */}
         <div className="absolute inset-0 bg-black/45" />
 
+        {/* Logo oben links */}
+        <div className="absolute top-6 left-6 md:left-10 z-10">
+          <Image
+            src="/lerneasy-white.svg"
+            alt="LernEasy"
+            width={160}
+            height={48}
+            priority
+          />
+        </div>
+
         {/* Inhalt */}
         <div className="relative z-10 mx-auto max-w-6xl w-full px-6 md:px-10 py-16 space-y-6">
           <h1 className="text-4xl md:text-5xl font-bold leading-tight text-white drop-shadow">

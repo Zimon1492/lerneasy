@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <rect width="80" height="80" rx="14" fill="#2563eb"/>
+  <text x="8" y="66" 
+    font-family="'Syne', 'Trebuchet MS', sans-serif" 
+    font-weight="800" 
+    font-size="68" 
+    fill="#ffffff"
+    letter-spacing="-4">LE</text>
+</svg>

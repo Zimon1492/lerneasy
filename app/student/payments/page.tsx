@@ -163,7 +163,7 @@ function CheckoutDisclosureModal({
           </p>
           <p><strong>Gesamtpreis (Endpreis):</strong> {price} {booking.currency.toUpperCase()}</p>
           <p>
-            <strong>Anbieter:</strong> LernApp e.U., E-Mail:{" "}
+            <strong>Anbieter:</strong> LernEasy e.U., E-Mail:{" "}
             <a href="mailto:office.lerneasy@gmail.com" className="text-blue-600 underline">office.lerneasy@gmail.com</a>
           </p>
         </div>
@@ -173,7 +173,7 @@ function CheckoutDisclosureModal({
           <p>
             Du hast das Recht, binnen <strong>14 Tagen</strong> ohne Angabe von Gründen vom
             Vertrag zurückzutreten. Mit Bestätigung der Zahlung erklärst du dich ausdrücklich
-            damit einverstanden, dass LernApp mit der Erbringung der Dienstleistung vor Ablauf
+            damit einverstanden, dass LernEasy mit der Erbringung der Dienstleistung vor Ablauf
             der Widerrufsfrist beginnt. Du bestätigst, dass dein Widerrufsrecht mit vollständiger
             Erbringung der Dienstleistung erlischt.
           </p>

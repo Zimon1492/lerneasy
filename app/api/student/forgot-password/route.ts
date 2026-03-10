@@ -44,13 +44,13 @@ export async function POST(req: Request) {
       await transporter.sendMail({
         from: process.env.FROM_EMAIL,
         to: normalised,
-        subject: "Passwort zurücksetzen – LernApp",
+        subject: "Passwort zurücksetzen – LernEasy",
         html: `
           <h2>Passwort zurücksetzen</h2>
           <p>Du hast eine Passwort-Zurücksetzung angefordert. Klicke auf den Link, um ein neues Passwort festzulegen:</p>
           <p><a href="${baseUrl}/student/set-password?token=${token}" style="background:#2563eb;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block;margin:10px 0">Passwort zurücksetzen</a></p>
           <p>Dieser Link ist 2 Stunden gültig. Wenn du diese Anfrage nicht gestellt hast, kannst du diese E-Mail ignorieren.</p>
-          <p>Viele Grüße,<br/>dein LernApp-Team</p>
+          <p>Viele Grüße,<br/>dein LernEasy-Team</p>
         `,
       });
     }

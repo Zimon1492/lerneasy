@@ -197,7 +197,7 @@ export default function Home() {
           <div>
             <div className="font-semibold mb-2">Kontakt</div>
             <ul className="space-y-1 text-gray-600">
-              <li>lerneazy.office@gmail.com</li>
+              <li>office.lerneasy@gmail.com</li>
               <li>Mo–Fr 9–17 Uhr</li>
             </ul>
           </div>

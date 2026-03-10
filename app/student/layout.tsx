@@ -45,7 +45,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <div className="flex items-center justify-between px-4 py-3 md:px-6">
           {/* Logo */}
           <Link href="/student/dashboard" className="font-bold text-lg text-blue-600 tracking-tight">
-            LernApp
+            LernEasy
           </Link>
 
           {/* Desktop links */}

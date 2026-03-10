@@ -71,14 +71,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   await transporter.sendMail({
     from: process.env.FROM_EMAIL,
     to: email,
-    subject: "LernApp – Willkommen! Bitte lege dein Passwort fest",
-    html: `<h2>Willkommen bei LernApp, ${name}!</h2>
+    subject: "LernEasy – Willkommen! Bitte lege dein Passwort fest",
+    html: `<h2>Willkommen bei LernEasy, ${name}!</h2>
       <p>Wir haben deinen Vertrag erhalten und deinen Lehrer-Account aktiviert.</p>
       <p>Bitte klicke auf den folgenden Link, um dein Passwort festzulegen und deinen Account zu aktivieren:</p>
       <p><a href="${setPasswordUrl}">${setPasswordUrl}</a></p>
       <p>Dieser Link ist 24 Stunden gueltig.</p>
       <p>Wir freuen uns auf die Zusammenarbeit!</p>
-      <p>Herzliche Gruesse,<br>Das LernApp-Team</p>`,
+      <p>Herzliche Gruesse,<br>Das LernEasy-Team</p>`,
   });
 
   await prisma.teacherApplication.update({

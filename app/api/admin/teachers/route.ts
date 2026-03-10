@@ -102,7 +102,7 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: process.env.FROM_EMAIL,
       to: created.email,
-      subject: "Willkommen bei LernApp – Passwort festlegen",
+      subject: "Willkommen bei LernEasy – Passwort festlegen",
       html: `<h2>Willkommen, ${escapeHtml(created.name)}!</h2>
         <p>Klicke auf den Link um dein Passwort festzulegen:</p>
         <p><a href="${resetUrl}">${escapeHtml(resetUrl)}</a></p>

@@ -93,13 +93,13 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: process.env.FROM_EMAIL,
       to: email,
-      subject: "Deine Bewerbung bei LernApp ist eingegangen",
+      subject: "Deine Bewerbung bei LernEasy ist eingegangen",
       html: `
         <h2>Danke für deine Bewerbung, ${escapeHtml(name)}!</h2>
         <p>Wir haben deine Unterlagen erhalten und melden uns so schnell wie möglich bei dir.</p>
         <p><b>E-Mail:</b> ${escapeHtml(email)}</p>
         <p><b>Fach:</b> ${escapeHtml(subject || "kein Fach angegeben")}</p>
-        <p>Viele Grüße,<br/>dein LernApp-Team</p>
+        <p>Viele Grüße,<br/>dein LernEasy-Team</p>
       `,
     });
 

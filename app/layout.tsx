@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import AdSenseLoader from "app/components/AdSenseLoader";
 
 export const metadata: Metadata = {
-  title: "LernApp – Nachhilfetermine einfach buchen",
+  title: "LernEasy – Nachhilfetermine einfach buchen",
   description:
     "Vereinbare online deine Einzelsitzung mit einem Nachhilfelehrer deiner Wahl.",
 };

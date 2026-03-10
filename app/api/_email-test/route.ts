@@ -23,7 +23,7 @@ export async function GET() {
     const info = await transporter.sendMail({
       from: FROM_EMAIL,
       to: "hamudi.mario.wiese@gmail.com",
-      subject: "LernApp SMTP Test",
+      subject: "LernEasy SMTP Test",
       text: "Hallo! Diese Mail bestätigt, dass SMTP aus deiner App funktioniert.",
     });
 

@@ -118,7 +118,7 @@ export async function POST(req: Request) {
 
           <p>Bei Fragen stehen wir dir gerne unter <a href="mailto:office.lerneasy@gmail.com">office.lerneasy@gmail.com</a> zur Verfügung.</p>
 
-          <p>Viele Grüße,<br/>dein LernApp-Team</p>
+          <p>Viele Grüße,<br/>dein LernEasy-Team</p>
         `,
       }).catch(() => {});
       studentsSent++;
@@ -150,7 +150,7 @@ export async function POST(req: Request) {
 
           <p>Bei Fragen stehen wir dir gerne zur Verfügung.</p>
 
-          <p>Viele Grüße,<br/>dein LernApp-Team</p>
+          <p>Viele Grüße,<br/>dein LernEasy-Team</p>
         `,
       }).catch(() => {});
       teachersSent++;

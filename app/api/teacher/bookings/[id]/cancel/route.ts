@@ -63,7 +63,7 @@ export async function POST(
          <p>Leider hat <b>${teacher.name}</b> deinen Termin am <b>${new Date(booking.start).toLocaleString("de-AT")}</b> abgesagt.</p>
          <p>Der Betrag von <b>&euro;${(booking.priceCents / 100).toFixed(2)}</b> wird innerhalb von 5–10 Werktagen auf deine Karte zurückgebucht.</p>
          <p>Wir entschuldigen uns für die Unannehmlichkeiten.</p>
-         <p>Viele Grüße,<br/>dein LernApp-Team</p>`
+         <p>Viele Grüße,<br/>dein LernEasy-Team</p>`
       ).catch(() => {});
     }
 

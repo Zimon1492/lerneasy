@@ -8,17 +8,17 @@ export default function AgbPage() {
         <section>
           <h2 className="text-lg font-semibold mb-2">1. Geltungsbereich</h2>
           <p className="text-gray-700 leading-relaxed">
-            Diese Allgemeinen Gesch&auml;ftsbedingungen gelten f&uuml;r alle &uuml;ber die Plattform LernApp
-            (lernapp.at) vermittelten Leistungen zwischen Sch&uuml;lerinnen und Sch&uuml;lern (im Folgenden
+            Diese Allgemeinen Gesch&auml;ftsbedingungen gelten f&uuml;r alle &uuml;ber die Plattform LernEasy
+            (lerneasy.com) vermittelten Leistungen zwischen Sch&uuml;lerinnen und Sch&uuml;lern (im Folgenden
             &bdquo;Sch&uuml;ler&ldquo;) und Lehrpersonen (im Folgenden &bdquo;Lehrer&ldquo;) sowie zwischen
-            Nutzern und der LernApp e.U. (im Folgenden &bdquo;Plattformbetreiber&ldquo;).
+            Nutzern und der LernEasy e.U. (im Folgenden &bdquo;Plattformbetreiber&ldquo;).
           </p>
         </section>
 
         <section>
           <h2 className="text-lg font-semibold mb-2">2. Leistungsbeschreibung</h2>
           <p className="text-gray-700 leading-relaxed">
-            LernApp ist eine digitale Vermittlungsplattform, die Sch&uuml;lern erm&ouml;glicht, qualifizierte
+            LernEasy ist eine digitale Vermittlungsplattform, die Sch&uuml;lern erm&ouml;glicht, qualifizierte
             Nachhilfelehrer zu finden und Unterrichtstermine zu buchen. Der Plattformbetreiber ist kein
             Vertragspartner des eigentlichen Nachhilfeverh&auml;ltnisses, sondern lediglich Vermittler
             zwischen Sch&uuml;ler und Lehrer. Der Unterrichtsvertrag kommt direkt zwischen Sch&uuml;ler
@@ -101,7 +101,7 @@ export default function AgbPage() {
             Buchung).
           </p>
           <p className="text-gray-700 leading-relaxed mt-2">
-            Um das Widerrufsrecht auszu&uuml;ben, m&uuml;ssen Sie uns (LernApp e.U., E-Mail:
+            Um das Widerrufsrecht auszu&uuml;ben, m&uuml;ssen Sie uns (LernEasy e.U., E-Mail:
             office.lerneasy@gmail.com) mittels einer eindeutigen Erkl&auml;rung (z.&nbsp;B. per E-Mail)
             &uuml;ber Ihren Entschluss, diesen Vertrag zu widerrufen, informieren.
           </p>
@@ -115,7 +115,7 @@ export default function AgbPage() {
           </p>
           <p className="text-gray-700 leading-relaxed mt-2">
             Durch Akzeptieren dieser AGB bei der Buchung erkl&auml;rt sich der Sch&uuml;ler
-            ausdr&uuml;cklich damit einverstanden, dass LernApp mit der Erbringung der
+            ausdr&uuml;cklich damit einverstanden, dass LernEasy mit der Erbringung der
             Dienstleistung vor Ablauf der Widerrufsfrist beginnt, und er best&auml;tigt, dass er
             mit Beginn der Ausf&uuml;hrung sein Widerrufsrecht verliert, sobald die Dienstleistung
             vollst&auml;ndig erbracht worden ist.
@@ -197,7 +197,7 @@ export default function AgbPage() {
           </p>
           <div className="border border-gray-300 rounded-xl p-5 text-gray-700 text-sm space-y-3 bg-gray-50">
             <p>
-              <strong>An:</strong> LernApp e.U., E-Mail: office.lerneasy@gmail.com
+              <strong>An:</strong> LernEasy e.U., E-Mail: office.lerneasy@gmail.com
             </p>
             <p>
               Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag

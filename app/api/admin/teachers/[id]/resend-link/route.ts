@@ -42,7 +42,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   await transporter.sendMail({
     from: process.env.FROM_EMAIL,
     to: teacher.email,
-    subject: "LernApp – Neuer Link zum Passwort festlegen",
+    subject: "LernEasy – Neuer Link zum Passwort festlegen",
     html: `<h2>Hallo ${teacher.name}!</h2>
       <p>Hier ist dein neuer Link zum Passwort festlegen:</p>
       <p><a href="${resetUrl}">${resetUrl}</a></p>

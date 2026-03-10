@@ -164,7 +164,7 @@ function CheckoutDisclosureModal({
           <p><strong>Gesamtpreis (Endpreis):</strong> {price} {booking.currency.toUpperCase()}</p>
           <p>
             <strong>Anbieter:</strong> LernApp e.U., E-Mail:{" "}
-            <a href="mailto:lerneazy.office@gmail.com" className="text-blue-600 underline">lerneazy.office@gmail.com</a>
+            <a href="mailto:office.lerneasy@gmail.com" className="text-blue-600 underline">office.lerneasy@gmail.com</a>
           </p>
         </div>
 
@@ -179,7 +179,7 @@ function CheckoutDisclosureModal({
           </p>
           <p>
             Widerruf per E-Mail an:{" "}
-            <a href="mailto:lerneazy.office@gmail.com" className="text-blue-600 underline">lerneazy.office@gmail.com</a>.
+            <a href="mailto:office.lerneasy@gmail.com" className="text-blue-600 underline">office.lerneasy@gmail.com</a>.
             Das{" "}
             <a href="/agb#widerruf" className="text-blue-600 underline">Muster-Widerrufsformular</a>{" "}
             findest du in unseren AGB.

@@ -17,7 +17,7 @@ export default function ImpressumPage() {
         <section className="mb-6">
           <h2 className="text-lg font-semibold mb-2">Kontakt</h2>
           <p className="text-gray-700 leading-relaxed">
-            E-Mail: <a href="mailto:simonweberpp@gmail.com" className="text-blue-600 hover:underline">simonweberpp@gmail.com</a><br />
+            E-Mail: <a href="mailto:office.lerneasy@gmail.com" className="text-blue-600 hover:underline">office.lerneasy@gmail.com</a><br />
           </p>
         </section>
 

@@ -110,13 +110,13 @@ export async function POST(req: Request) {
           <h3>Deine Rechte</h3>
           <p>Du hast das Recht, deinen Vertrag bis zum Inkrafttreten der Änderungen
           (<strong>${formatDate(effectiveFrom)}</strong>) kostenfrei zu beenden und dein Konto zu löschen.
-          Wende dich dazu an <a href="mailto:lerneazy.office@gmail.com">lerneazy.office@gmail.com</a>.</p>
+          Wende dich dazu an <a href="mailto:office.lerneasy@gmail.com">office.lerneasy@gmail.com</a>.</p>
           <p>Wenn du die Plattform nach dem ${formatDate(effectiveFrom)} weiterhin nutzt,
           gilt dies als Zustimmung zu den neuen AGB.</p>
 
           <p>Die aktuellen AGB kannst du jederzeit unter <a href="${baseUrl}/agb">${baseUrl}/agb</a> einsehen.</p>
 
-          <p>Bei Fragen stehen wir dir gerne unter <a href="mailto:lerneazy.office@gmail.com">lerneazy.office@gmail.com</a> zur Verfügung.</p>
+          <p>Bei Fragen stehen wir dir gerne unter <a href="mailto:office.lerneasy@gmail.com">office.lerneasy@gmail.com</a> zur Verfügung.</p>
 
           <p>Viele Grüße,<br/>dein LernApp-Team</p>
         `,
@@ -146,7 +146,7 @@ export async function POST(req: Request) {
           <h3>Deine Rechte</h3>
           <p>Du hast das Recht, den Werkvertrag bis zum <strong>${formatDate(teacherEffectiveDate)}</strong>
           zu kündigen, wenn du den Änderungen nicht zustimmst (gemäß Werkvertrag §8 Abs. 2).
-          Wende dich dazu an <a href="mailto:lerneazy.office@gmail.com">lerneazy.office@gmail.com</a>.</p>
+          Wende dich dazu an <a href="mailto:office.lerneasy@gmail.com">office.lerneasy@gmail.com</a>.</p>
 
           <p>Bei Fragen stehen wir dir gerne zur Verfügung.</p>
 

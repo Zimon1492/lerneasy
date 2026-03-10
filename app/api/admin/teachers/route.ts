@@ -72,6 +72,16 @@ export async function POST(req: Request) {
       select: { id: true, name: true, email: true, subject: true },
     });
 
+    // Ensure each subject exists in the Subject table so the teacher can manage offers
+    const subjectNames = (subject as string).split(",").map((s: string) => s.trim()).filter(Boolean);
+    for (const subjectName of subjectNames) {
+      await prisma.subject.upsert({
+        where: { name: subjectName },
+        update: {},
+        create: { name: subjectName },
+      });
+    }
+
     const token = crypto.randomBytes(32).toString("hex");
     await prisma.passwordResetToken.create({
       data: {

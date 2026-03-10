@@ -370,7 +370,7 @@ export default function TeacherSubjectsPage() {
           <h2 className="font-semibold mb-1">Neues Angebot hinzufügen</h2>
           <p className="text-xs text-gray-500 mb-4">
             Du kannst nur Fächer auswählen, die in deinem Profil hinterlegt sind. Wenn du weitere Fächer anbieten möchtest,{" "}
-            <a href="mailto:lerneazy.office@gmail.com" className="text-blue-600 underline">melde dich bei uns</a>.
+            <a href="mailto:office.lerneasy@gmail.com" className="text-blue-600 underline">melde dich bei uns</a>.
           </p>
 
           <div className="grid md:grid-cols-2 gap-4">
@@ -383,7 +383,7 @@ export default function TeacherSubjectsPage() {
                 disabled={allowedSubjects.length === 0}
               >
                 {allowedSubjects.length === 0 ? (
-                  <option value="">Keine Fächer im Lehrerprofil hinterlegt (Teacher.subject)</option>
+                  <option value="">Keine Fächer hinterlegt – bitte Admin kontaktieren</option>
                 ) : (
                   allowedSubjects.map((s) => (
                     <option key={s.id} value={s.id}>

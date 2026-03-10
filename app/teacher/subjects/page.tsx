@@ -1,7 +1,7 @@
 // app/teacher/subjects/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 
 type Subject = { id: string; name: string };
@@ -153,7 +153,7 @@ export default function TeacherSubjectsPage() {
   const [minGrade, setMinGrade] = useState(1);
   const [maxGrade, setMaxGrade] = useState(4);
 
-  async function loadAll() {
+  const loadAll = useCallback(async () => {
     if (!session?.user?.email) return;
     setLoading(true);
     setMsg(null);
@@ -161,17 +161,18 @@ export default function TeacherSubjectsPage() {
     try {
       const email = encodeURIComponent(session.user.email);
 
-      const [subRes, offRes, profRes] = await Promise.all([
-        fetch("/api/subjects", { cache: "no-store" }),
+      const [mySubRes, offRes, profRes] = await Promise.all([
+        fetch(`/api/teacher/my-subjects?email=${email}`, { cache: "no-store" }),
         fetch(`/api/teacher/offers?email=${email}`, { cache: "no-store" }),
         fetch(`/api/teacher/profile?email=${email}`, { cache: "no-store" }),
       ]);
 
-      const subJson = await subRes.json().catch(() => ({}));
+      const mySubJson = await mySubRes.json().catch(() => ({}));
       const offJson = await offRes.json().catch(() => ({}));
       const profJson = await profRes.json().catch(() => ({}));
 
-      setAllSubjects(subJson.data || []);
+      const mySubjects: Subject[] = mySubJson.data || [];
+      setAllSubjects(mySubjects);
       setOffers(offJson.data || []);
       const profile = profJson.data || null;
       setTeacherProfile(profile);
@@ -182,35 +183,26 @@ export default function TeacherSubjectsPage() {
         if (profile.schoolTrack === "BHS") setLevel("OBERSTUFE");
       }
 
-      // Default subjectId: erstes Fach aus Lehrerprofil
-      const names = parseTeacherSubjects(profJson?.data?.subject || "");
-      const allowed = (subJson.data || []).filter((s: Subject) =>
-        new Set(names.map(normalizeSubject)).has(normalizeSubject(s.name))
-      );
-
-      if ((!subjectId || !allowed.find((x: Subject) => x.id === subjectId)) && allowed.length > 0) {
-        setSubjectId(allowed[0].id);
+      if (mySubjects.length > 0) {
+        setSubjectId((prev) =>
+          mySubjects.find((s) => s.id === prev) ? prev : mySubjects[0].id
+        );
+      } else {
+        setSubjectId("");
       }
-      if (allowed.length === 0) setSubjectId("");
     } catch (e: any) {
       setMsg(e?.message || "Fehler beim Laden.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [session?.user?.email]);
 
   useEffect(() => {
     if (status === "authenticated") loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, loadAll]);
 
-  // ✅ Nur Fächer aus Teacher.subject
-  const allowedSubjects = useMemo(() => {
-    const names = parseTeacherSubjects(teacherProfile?.subject || "");
-    if (names.length === 0) return [];
-    const allowed = new Set(names.map(normalizeSubject));
-    return allSubjects.filter((s) => allowed.has(normalizeSubject(s.name)));
-  }, [allSubjects, teacherProfile]);
+  // allSubjects already contains only this teacher's subjects (from /api/teacher/my-subjects)
+  const allowedSubjects = allSubjects;
 
   // Track Optionen: basierend auf Profil + unterstufeOnly
   const trackOptions = useMemo(() => {
@@ -369,8 +361,8 @@ export default function TeacherSubjectsPage() {
         <div className="bg-white rounded-2xl border shadow-sm p-5 mb-8">
           <h2 className="font-semibold mb-1">Neues Angebot hinzufügen</h2>
           <p className="text-xs text-gray-500 mb-4">
-            Du kannst nur Fächer auswählen, die in deinem Profil hinterlegt sind. Wenn du weitere Fächer anbieten möchtest,{" "}
-            <a href="mailto:office.lerneasy@gmail.com" className="text-blue-600 underline">melde dich bei uns</a>.
+            Du kannst nur Fächer auswählen, die in deinem Profil hinterlegt sind. Wenn du weitere Fächer anbieten möchtest, melde dich bei uns:{" "}
+            <span className="font-medium text-blue-700 select-all">office.lerneasy@gmail.com</span>
           </p>
 
           <div className="grid md:grid-cols-2 gap-4">

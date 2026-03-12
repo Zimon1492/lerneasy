@@ -12,7 +12,6 @@ type Teacher = {
   _count: { bookings: number; availabilities: number };
 };
 
-
 export default function AdminTeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +19,9 @@ export default function AdminTeachersPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [resendMsg, setResendMsg] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSubject, setEditSubject] = useState("");
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -52,6 +54,34 @@ export default function AdminTeachersPage() {
     } else {
       const d = await res.json();
       setResendMsg("Fehler: " + (d.error ?? res.status));
+    }
+  }
+
+  function startEdit(t: Teacher) {
+    setEditingId(t.id);
+    setEditSubject(t.subject);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditSubject("");
+  }
+
+  async function saveSubject(id: string) {
+    if (!editSubject.trim()) return;
+    setSavingId(id);
+    const res = await fetch(`/api/admin/teachers/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subject: editSubject.trim() }),
+    });
+    setSavingId(null);
+    if (!res.ok) {
+      const d = await res.json();
+      alert("Fehler: " + (d.error ?? res.status));
+    } else {
+      setEditingId(null);
+      load();
     }
   }
 
@@ -121,7 +151,44 @@ export default function AdminTeachersPage() {
                 <tr key={t.id} className="hover:bg-gray-50">
                   <td className="px-5 py-3 font-medium">{t.name}</td>
                   <td className="px-5 py-3 text-gray-600">{t.email}</td>
-                  <td className="px-5 py-3 text-gray-600">{t.subject}</td>
+                  <td className="px-5 py-3 text-gray-600">
+                    {editingId === t.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          className="border border-gray-300 rounded px-2 py-1 text-sm w-48"
+                          value={editSubject}
+                          onChange={(e) => setEditSubject(e.target.value)}
+                          placeholder="z.B. Mathematik, Englisch"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveSubject(t.id);
+                            if (e.key === "Escape") cancelEdit();
+                          }}
+                        />
+                        <button
+                          onClick={() => saveSubject(t.id)}
+                          disabled={savingId === t.id}
+                          className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 disabled:opacity-40"
+                        >
+                          {savingId === t.id ? "..." : "✓"}
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <span
+                        className="cursor-pointer hover:text-indigo-600 hover:underline"
+                        onClick={() => startEdit(t)}
+                        title="Klicken zum Bearbeiten"
+                      >
+                        {t.subject}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-5 py-3 text-center">{t._count.bookings}</td>
                   <td className="px-5 py-3 text-center">
                     {t.mustChangePassword ? (
@@ -135,6 +202,14 @@ export default function AdminTeachersPage() {
                     )}
                   </td>
                   <td className="px-5 py-3 text-right space-x-3">
+                    {editingId !== t.id && (
+                      <button
+                        onClick={() => startEdit(t)}
+                        className="text-xs text-indigo-600 hover:text-indigo-800"
+                      >
+                        Bearbeiten
+                      </button>
+                    )}
                     {t.mustChangePassword && (
                       <button
                         onClick={() => handleResendLink(t.id)}

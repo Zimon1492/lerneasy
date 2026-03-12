@@ -19,19 +19,19 @@ body {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* FullCalendar fixes */
-.fc .fc-button .fc-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  font-size: 1rem;
-}
 .fc .fc-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
 }
+.fc .fc-icon {
+  font-family: inherit !important;
+  font-size: 1.1rem;
+  line-height: 1;
+  speak: none;
+}
+.fc .fc-icon-chevron-left::before  { content: "‹"; }
+.fc .fc-icon-chevron-right::before { content: "›"; }
 
 /* Smaller title on mobile */
 @media (max-width: 767px) {

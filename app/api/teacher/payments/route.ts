@@ -22,7 +22,10 @@ export async function GET() {
   }
 
   const bookings = await prisma.booking.findMany({
-    where: { teacherId: teacher.id },
+    where: {
+      teacherId: teacher.id,
+      status: { notIn: ["checkout_started", "pending"] },
+    },
     orderBy: { start: "desc" },
     select: {
       id: true,

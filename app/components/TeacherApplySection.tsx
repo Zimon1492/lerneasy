@@ -1,39 +1,175 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 type SchoolTrack = "AHS" | "BHS" | "BOTH";
-type LevelPref = "UNTERSTUFE" | "OBERSTUFE" | "BOTH";
+type LevelPref  = "UNTERSTUFE" | "OBERSTUFE" | "BOTH";
 
 const AHS_FORMS = [
-  { value: "AHS_GYMNASIUM", label: "Gymnasium" },
-  { value: "AHS_REALGYMNASIUM", label: "Realgymnasium" },
+  { value: "AHS_GYMNASIUM",        label: "Gymnasium" },
+  { value: "AHS_REALGYMNASIUM",    label: "Realgymnasium" },
   { value: "AHS_WK_REALGYMNASIUM", label: "Wirtschaftsk. Realgymnasium" },
-  { value: "AHS_BORG", label: "BORG" },
-  { value: "AHS_SCHWERPUNKT", label: "AHS mit Schwerpunkt" },
+  { value: "AHS_BORG",             label: "BORG" },
+  { value: "AHS_SCHWERPUNKT",      label: "AHS mit Schwerpunkt" },
 ];
 
 const BHS_FORMS = [
-  { value: "BHS_HTL", label: "HTL" },
-  { value: "BHS_HAK", label: "HAK" },
-  { value: "BHS_HLW", label: "HLW / HWS" },
-  { value: "BHS_MODE", label: "HLA Mode" },
+  { value: "BHS_HTL",          label: "HTL" },
+  { value: "BHS_HAK",          label: "HAK" },
+  { value: "BHS_HLW",          label: "HLW / HWS" },
+  { value: "BHS_MODE",         label: "HLA Mode" },
   { value: "BHS_KUNST_GESTALTUNG", label: "HLA Kunst & Gestaltung" },
-  { value: "BHS_TOURISMUS", label: "HLA Tourismus" },
-  { value: "BHS_SOZIALPAED", label: "Sozialpaedagogik" },
-  { value: "BHS_LAND_FORST", label: "Land- & Forstwirtschaft" },
+  { value: "BHS_TOURISMUS",    label: "HLA Tourismus" },
+  { value: "BHS_SOZIALPAED",   label: "Sozialpaedagogik" },
+  { value: "BHS_LAND_FORST",   label: "Land- & Forstwirtschaft" },
 ];
 
+// ─── Fach-Picker ─────────────────────────────────────────────────────────────
+
+function SubjectPicker({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (subjects: string[]) => void;
+}) {
+  const [allSubjects, setAllSubjects] = useState<string[]>([]);
+  const [query, setQuery]             = useState("");
+  const [open, setOpen]               = useState(false);
+  const containerRef                  = useRef<HTMLDivElement>(null);
+  const inputRef                      = useRef<HTMLInputElement>(null);
+
+  // Fächer von der API laden
+  useEffect(() => {
+    fetch("/api/subjects")
+      .then((r) => r.json())
+      .then((data) => {
+        const names: string[] = (data.data ?? []).map((s: { name: string }) => s.name);
+        setAllSubjects(names);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Klick außerhalb → Dropdown schließen
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const suggestions = allSubjects.filter(
+    (s) =>
+      !selected.includes(s) &&
+      s.toLowerCase().includes(query.toLowerCase())
+  );
+
+  function add(name: string) {
+    onChange([...selected, name]);
+    setQuery("");
+    setOpen(false);
+    inputRef.current?.focus();
+  }
+
+  function remove(name: string) {
+    onChange(selected.filter((s) => s !== name));
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (suggestions.length > 0) add(suggestions[0]);
+    }
+    if (e.key === "Escape") setOpen(false);
+    if (e.key === "Backspace" && query === "" && selected.length > 0) {
+      remove(selected[selected.length - 1]);
+    }
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      {/* Tags + Eingabe */}
+      <div
+        className={`flex flex-wrap gap-1.5 min-h-[42px] w-full border rounded p-2 bg-white cursor-text transition ${
+          open ? "ring-2 ring-blue-400 border-blue-400" : "border-gray-300"
+        }`}
+        onClick={() => inputRef.current?.focus()}
+      >
+        {selected.map((name) => (
+          <span
+            key={name}
+            className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full"
+          >
+            {name}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); remove(name); }}
+              className="text-blue-500 hover:text-blue-800 leading-none"
+              aria-label={`${name} entfernen`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={selected.length === 0 ? "Fach suchen und auswählen..." : ""}
+          className="flex-1 min-w-[140px] outline-none text-sm bg-transparent"
+        />
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+          {suggestions.length === 0 ? (
+            <div className="px-4 py-3 text-sm text-gray-400">
+              {query ? "Kein passendes Fach gefunden." : "Alle verfügbaren Fächer ausgewählt."}
+            </div>
+          ) : (
+            suggestions.map((name) => (
+              <button
+                key={name}
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); add(name); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 hover:text-blue-700 transition"
+              >
+                {name}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Hint */}
+      <p className="text-xs text-gray-400 mt-1">
+        Tippe um zu suchen · Enter oder anklicken zum Auswählen · Backspace zum Entfernen
+      </p>
+    </div>
+  );
+}
+
+// ─── Haupt-Komponente ─────────────────────────────────────────────────────────
+
 export default function TeacherApplySection() {
-  const [loading, setLoading] = useState(false);
-  const [ok, setOk] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading]               = useState(false);
+  const [ok, setOk]                         = useState<string | null>(null);
+  const [err, setErr]                       = useState<string | null>(null);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const [schoolTrack, setSchoolTrack] = useState<SchoolTrack>("BOTH");
-  const [levelPref, setLevelPref] = useState<LevelPref>("BOTH");
-  const [selectedForms, setSelectedForms] = useState<Set<string>>(new Set());
-  const [allAhs, setAllAhs] = useState(false);
-  const [allBhs, setAllBhs] = useState(false);
+  const [schoolTrack, setSchoolTrack]       = useState<SchoolTrack>("BOTH");
+  const [levelPref, setLevelPref]           = useState<LevelPref>("BOTH");
+  const [selectedForms, setSelectedForms]   = useState<Set<string>>(new Set());
+  const [allAhs, setAllAhs]                 = useState(false);
+  const [allBhs, setAllBhs]                 = useState(false);
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
 
   function onTrackChange(v: SchoolTrack) {
@@ -47,8 +183,7 @@ export default function TeacherApplySection() {
   function toggleForm(value: string) {
     setSelectedForms((prev) => {
       const next = new Set(prev);
-      if (next.has(value)) next.delete(value);
-      else next.add(value);
+      next.has(value) ? next.delete(value) : next.add(value);
       return next;
     });
   }
@@ -92,22 +227,24 @@ export default function TeacherApplySection() {
     e.preventDefault();
     setOk(null);
     setErr(null);
-    setLoading(true);
 
+    if (selectedSubjects.length === 0) {
+      setErr("Bitte wähle mindestens ein Fach aus.");
+      return;
+    }
+
+    setLoading(true);
     try {
       const fd = new FormData(e.currentTarget);
+      fd.set("subject", selectedSubjects.join(", "));
       fd.set("schoolTrack", schoolTrack);
       fd.set("levelPref", levelPref);
       fd.set("schoolForms", JSON.stringify(getSchoolForms()));
 
-      const res = await fetch("/api/teachers/apply", {
-        method: "POST",
-        body: fd,
-      });
-
-      const raw = await res.text();
+      const res  = await fetch("/api/teachers/apply", { method: "POST", body: fd });
+      const raw  = await res.text();
       let data: any = null;
-      try { data = JSON.parse(raw); } catch { }
+      try { data = JSON.parse(raw); } catch { /* ignore */ }
 
       if (!res.ok) {
         setErr(data?.error || raw || `Fehler ${res.status}`);
@@ -122,11 +259,11 @@ export default function TeacherApplySection() {
       setSelectedForms(new Set());
       setAllAhs(false);
       setAllBhs(false);
-      setLoading(false);
-    } catch (e: any) {
-      setErr(`Netzwerkfehler: ${e?.message || e}`);
-      setLoading(false);
+      setSelectedSubjects([]);
+    } catch (ex: any) {
+      setErr(`Netzwerkfehler: ${ex?.message || ex}`);
     }
+    setLoading(false);
   }
 
   const showAhs = schoolTrack === "AHS" || schoolTrack === "BOTH";
@@ -135,6 +272,7 @@ export default function TeacherApplySection() {
   return (
     <section className="bg-blue-50 border-t">
       <div className="mx-auto max-w-5xl px-6 md:px-10 py-16 grid md:grid-cols-2 gap-10 items-start">
+
         {/* Linke Seite */}
         <div className="space-y-4">
           <h2 className="text-3xl font-bold">Bewirb dich als Lehrer</h2>
@@ -151,14 +289,11 @@ export default function TeacherApplySection() {
 
         {/* Rechte Seite – Formular */}
         <div className="bg-white rounded-2xl shadow p-6 space-y-4">
-          {ok && (
-            <div className="border border-green-300 bg-green-50 text-green-700 rounded p-2 text-sm">{ok}</div>
-          )}
-          {err && (
-            <div className="border border-red-300 bg-red-50 text-red-700 rounded p-2 text-sm">{err}</div>
-          )}
+          {ok  && <div className="border border-green-300 bg-green-50 text-green-700 rounded p-2 text-sm">{ok}</div>}
+          {err && <div className="border border-red-300 bg-red-50 text-red-700 rounded p-2 text-sm">{err}</div>}
 
           <form ref={formRef} onSubmit={onSubmit} encType="multipart/form-data" className="space-y-4">
+
             <label className="block">
               <span className="text-sm font-medium">Name *</span>
               <input name="name" required className="mt-1 w-full border rounded p-2" placeholder="Erika Mustermann" />
@@ -169,11 +304,16 @@ export default function TeacherApplySection() {
               <input type="email" name="email" required className="mt-1 w-full border rounded p-2" placeholder="max@mail.com" />
             </label>
 
-            <label className="block">
-              <span className="text-sm font-medium">Fach / Faecher *</span>
-              <input name="subject" required className="mt-1 w-full border rounded p-2" placeholder="z.B. Mathematik, Englisch" />
-              <span className="text-xs text-gray-500">Mehrere Faecher mit Komma trennen</span>
-            </label>
+            {/* Fach-Picker */}
+            <div>
+              <span className="text-sm font-medium">Fach / Fächer *</span>
+              <div className="mt-1">
+                <SubjectPicker
+                  selected={selectedSubjects}
+                  onChange={setSelectedSubjects}
+                />
+              </div>
+            </div>
 
             {/* Schultyp + Stufe */}
             <div className="grid grid-cols-2 gap-3">
@@ -299,8 +439,10 @@ export default function TeacherApplySection() {
               />
               <span className="text-sm text-gray-600">
                 Ich habe die{" "}
-                <a href="/datenschutz" target="_blank" className="text-blue-600 underline">Datenschutzerklärung</a>
-                {" "}gelesen und akzeptiere sie.
+                <a href="/datenschutz" target="_blank" className="text-blue-600 underline">
+                  Datenschutzerklärung
+                </a>{" "}
+                gelesen und akzeptiere sie.
               </span>
             </label>
 

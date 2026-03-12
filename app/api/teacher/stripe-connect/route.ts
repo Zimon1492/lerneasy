@@ -69,7 +69,11 @@ export async function POST() {
       const account = await stripe.accounts.create({
         type: "express",
         email: teacher.email,
-        capabilities: { transfers: { requested: true } },
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        business_type: "individual",
       });
       accountId = account.id;
       await prisma.teacher.update({
@@ -88,6 +92,7 @@ export async function POST() {
 
     return NextResponse.json({ url: accountLink.url });
   } catch (err) {
+    console.error("POST /api/teacher/stripe-connect error:", err);
     logError("api/teacher/stripe-connect POST", err).catch(() => {});
     return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
   }

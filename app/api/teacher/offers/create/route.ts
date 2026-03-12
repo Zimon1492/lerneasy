@@ -100,9 +100,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Teacher nicht gefunden." }, { status: 404 });
     }
 
-    if (!teacher.address?.trim() || !teacher.taxNumber?.trim()) {
+    if (!teacher.address?.trim()) {
       return NextResponse.json(
-        { error: "Profil unvollständig. Bitte zuerst Adresse und Steuernummer im Profil hinterlegen." },
+        { error: "Profil unvollständig. Bitte zuerst deine Adresse im Profil hinterlegen." },
         { status: 403 }
       );
     }

@@ -590,9 +590,22 @@ export default function BookPage() {
 
             {/* Cost preview */}
             {hours > 0 && timeValid && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
-                <span className="text-sm text-blue-800">{hours.toFixed(1).replace(".", ",")} Std. × {hourlyPrice.toFixed(2).replace(".", ",")} €</span>
-                <span className="font-bold text-blue-900 text-lg">{priceFormatted} €</span>
+              <div className="space-y-2">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <span className="text-sm text-blue-800">{hours.toFixed(1).replace(".", ",")} Std. × {hourlyPrice.toFixed(2).replace(".", ",")} €</span>
+                  <span className="font-bold text-blue-900 text-lg">{priceFormatted} €</span>
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex gap-3 items-start">
+                  <span className="text-amber-500 text-lg shrink-0">ℹ</span>
+                  <div className="text-sm text-amber-800">
+                    <p className="font-semibold mb-0.5">Jetzt wird noch kein Geld abgebucht.</p>
+                    <p className="text-amber-700 text-xs leading-relaxed">
+                      Du hinterlegst nur deine Zahlungsmethode. Der Betrag von <strong>{priceFormatted} €</strong> wird
+                      erst dann abgebucht, wenn der Lehrer deinen Termin <strong>ausdrücklich annimmt</strong>.
+                      Lehnt der Lehrer ab, erfolgt keinerlei Belastung.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -604,7 +617,7 @@ export default function BookPage() {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            {/* AGB checkbox */}
+            {/* AGB + Widerrufsrecht-Checkbox */}
             <label className="flex items-start gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
@@ -617,17 +630,28 @@ export default function BookPage() {
                 <a href="/agb" target="_blank" className="text-blue-600 underline">AGB</a>
                 {" "}und habe die{" "}
                 <a href="/datenschutz" target="_blank" className="text-blue-600 underline">Datenschutzerklärung</a>
-                {" "}gelesen.
+                {" "}gelesen.{" "}
+                <span className="text-gray-700">
+                  Ich stimme ausdrücklich zu, dass LernEasy mit der Erbringung der Dienstleistung
+                  vor Ablauf der 14-tägigen Widerrufsfrist beginnt, und nehme zur Kenntnis, dass
+                  ich damit mein Widerrufsrecht mit vollständiger Erbringung der Leistung verliere
+                  (gem. §&nbsp;18 Abs.&nbsp;1 Z&nbsp;11 FAGG).
+                </span>
               </span>
             </label>
 
-            <div className="flex justify-end gap-3 pt-1">
-              <button type="button" onClick={() => router.back()} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700">
-                Abbrechen
-              </button>
-              <button type="submit" disabled={!canSubmit} className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold disabled:opacity-50">
-                {submitting ? "Bitte warten..." : `Zahlungspflichtig buchen${hours > 0 && timeValid ? ` — ${priceFormatted} €` : ""}`}
-              </button>
+            <div className="space-y-2 pt-1">
+              <div className="flex justify-end gap-3">
+                <button type="button" onClick={() => router.back()} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700">
+                  Abbrechen
+                </button>
+                <button type="submit" disabled={!canSubmit} className="px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold disabled:opacity-50">
+                  {submitting ? "Bitte warten..." : `Kostenpflichtig anfragen${hours > 0 && timeValid ? ` — ${priceFormatted} €` : ""}`}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 text-right">
+                Kein Geldabzug jetzt — Abbuchung nur bei Annahme durch den Lehrer.
+              </p>
             </div>
           </form>
         </div>

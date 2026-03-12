@@ -5,6 +5,8 @@ import prisma from "@/app/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { logError } from "@/app/lib/logError";
 import { getPlatformSettings } from "@/app/lib/settings";
+import { createGutschrift } from "@/app/lib/invoiceUtils";
+import { sendGutschrift } from "@/app/lib/mailer";
 
 export const runtime = "nodejs";
 
@@ -105,6 +107,15 @@ export async function POST() {
       return NextResponse.json({ error: "Kein Guthaben verfügbar." }, { status: 400 });
     }
 
+    const completedBookingsWithId = await prisma.booking.findMany({
+      where: { teacherId: teacher.id, status: "paid", end: { lt: now } },
+      select: {
+        id: true,
+        priceCents: true,
+        teacher: { select: { name: true, email: true, address: true, taxNumber: true } },
+      },
+    });
+
     const transfer = await stripe.transfers.create({
       amount: availableCents,
       currency: "eur",
@@ -119,6 +130,34 @@ export async function POST() {
         stripeTransferId: transfer.id,
       },
     });
+
+    // Gutschriften für alle abgeschlossenen Buchungen erstellen & senden (idempotent)
+    Promise.allSettled(
+      completedBookingsWithId.map(async (b) => {
+        const gutschrift = await createGutschrift(b.id);
+        await sendGutschrift({
+          to:               gutschrift.teacherEmail,
+          invoiceNumber:    gutschrift.invoiceNumber,
+          issuerName:       gutschrift.issuerName,
+          issuerAddress:    gutschrift.issuerAddress,
+          issuerUid:        gutschrift.issuerUid,
+          teacherName:      gutschrift.teacherName,
+          teacherAddress:   gutschrift.teacherAddress,
+          teacherTaxNumber: gutschrift.teacherTaxNumber,
+          subject:          gutschrift.subject,
+          serviceDate:      gutschrift.serviceDate,
+          serviceStartTime: gutschrift.serviceStartTime,
+          serviceEndTime:   gutschrift.serviceEndTime,
+          durationMinutes:  gutschrift.durationMinutes,
+          priceCents:       gutschrift.priceCents,
+          commissionCents:  gutschrift.commissionCents!,
+          teacherNetCents:  gutschrift.teacherNetCents!,
+          teacherSharePct:  gutschrift.teacherSharePct!,
+          currency:         gutschrift.currency,
+          issuedAt:         new Date(), // Auszahlungsdatum als Ausstellungsdatum
+        });
+      })
+    ).catch(() => {});
 
     return NextResponse.json({ ok: true, amountCents: availableCents, transferId: transfer.id });
   } catch (err) {

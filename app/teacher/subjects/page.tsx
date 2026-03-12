@@ -333,8 +333,7 @@ export default function TeacherSubjectsPage() {
   }
 
   const range = gradeRangeFor(schoolTrack, level);
-  const profileComplete =
-    !!teacherProfile?.address?.trim() && !!teacherProfile?.taxNumber?.trim();
+  const profileComplete = !!teacherProfile?.address?.trim();
 
   if (status === "loading") {
     return <main className="min-h-screen bg-gray-50 px-6 py-10">Lade…</main>;
@@ -353,8 +352,8 @@ export default function TeacherSubjectsPage() {
             <p className="font-semibold text-amber-800 mb-1">Profil unvollständig</p>
             <p className="text-sm text-amber-700 mb-3">
               Bevor du Unterrichtsangebote erstellen kannst, musst du im Profil deine{" "}
-              <strong>Adresse</strong> und deine <strong>Steuernummer / UID</strong> hinterlegen.
-              Diese Angaben werden für korrekte Gutschriften benötigt.
+              <strong>Adresse</strong> hinterlegen. Die Steuernummer / UID ist optional, wird aber
+              für korrekte Gutschriften bei der Auszahlung empfohlen.
             </p>
             <a
               href="/teacher/profile"

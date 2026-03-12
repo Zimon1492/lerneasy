@@ -49,8 +49,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ok: true, url: blob.url });
-  } catch (err) {
+  } catch (err: any) {
     logError("app/api/teacher/profile/picture POST", err).catch(() => {});
-    return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
+    console.error("profile/picture error:", err);
+    return NextResponse.json({ error: err?.message ?? "Serverfehler" }, { status: 500 });
   }
 }

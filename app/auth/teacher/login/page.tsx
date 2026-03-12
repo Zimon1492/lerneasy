@@ -83,6 +83,12 @@ export default function TeacherLoginPage() {
             {loading ? "Anmelden..." : "Anmelden"}
           </button>
         </form>
+
+        <p className="text-center text-sm text-gray-500 mt-3">
+          <a href="/teacher/forgot-password" className="text-indigo-600 hover:underline">
+            Passwort vergessen?
+          </a>
+        </p>
       </div>
     </div>
   );

@@ -294,6 +294,7 @@ export default function TeacherDashboard() {
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay",
         }}
+        timeZone="UTC"
         events={events}
         eventClick={onEventClick}
         allDaySlot={false}

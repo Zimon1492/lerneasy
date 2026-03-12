@@ -210,6 +210,31 @@ export async function POST(req: Request) {
       );
     }
 
+    // ✅ Überschneidungs-Check: bestehende Angebote mit gleichem Fach/Track/Form/Level laden
+    const existingOffers = await prisma.teachingOffer.findMany({
+      where: { teacherId: teacher.id, subjectId: subject.id },
+      select: { schoolTrack: true, schoolForm: true, level: true, minGrade: true, maxGrade: true },
+    });
+
+    for (const c of combos) {
+      const overlapping = existingOffers.find(
+        (o) =>
+          o.schoolTrack === c.schoolTrack &&
+          o.schoolForm === c.schoolForm &&
+          o.level === c.level &&
+          o.minGrade <= c.maxGrade &&
+          c.minGrade <= o.maxGrade
+      );
+      if (overlapping) {
+        return NextResponse.json(
+          {
+            error: `Überschneidung erkannt: Ein Angebot für ${c.schoolForm} · ${c.level} · ${c.minGrade}.-${c.maxGrade}. Klasse überschneidet sich mit einem bestehenden Angebot (${overlapping.minGrade}.-${overlapping.maxGrade}. Klasse). Bitte lösche das bestehende Angebot zuerst oder wähle einen anderen Klassenbereich.`,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     // ✅ Ohne createMany(skipDuplicates) => wir erstellen einzeln und ignorieren Duplikate (P2002)
     let createdCount = 0;
     let skippedCount = 0;

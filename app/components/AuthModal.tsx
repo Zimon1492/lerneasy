@@ -339,6 +339,14 @@ export default function AuthModal({ onClose }: Props) {
             </>
           )}
         </p>
+
+        {mode === "login" && (
+          <p className="text-center text-sm text-gray-500 mt-1">
+            <a href="/student/forgot-password" className="text-blue-600 hover:underline">
+              Passwort vergessen?
+            </a>
+          </p>
+        )}
       </div>
     </div>
   );

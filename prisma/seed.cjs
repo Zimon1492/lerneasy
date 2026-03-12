@@ -13,12 +13,19 @@ async function main() {
     "Physik",
     "Chemie",
     "Informatik",
+    "Elektrotechnik",
     "Geschichte",
     "Geographie",
     "Französisch",
     "Spanisch",
     "BWL",
     "Recht",
+    "Musik",
+    "Kunst",
+    "Sport",
+    "Statistik",
+    "Programmieren",
+    "Wirtschaftsinformatik",
   ];
 
   for (const name of subjects) {

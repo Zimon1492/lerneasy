@@ -93,11 +93,18 @@ export async function POST(req: Request) {
 
     const teacher = await prisma.teacher.findUnique({
       where: { email },
-      select: { id: true, unterstufeOnly: true, allowedForms: true },
+      select: { id: true, unterstufeOnly: true, allowedForms: true, address: true, taxNumber: true },
     });
 
     if (!teacher) {
       return NextResponse.json({ error: "Teacher nicht gefunden." }, { status: 404 });
+    }
+
+    if (!teacher.address?.trim() || !teacher.taxNumber?.trim()) {
+      return NextResponse.json(
+        { error: "Profil unvollständig. Bitte zuerst Adresse und Steuernummer im Profil hinterlegen." },
+        { status: 403 }
+      );
     }
 
     // ✅ Unterstufe-only Regeln

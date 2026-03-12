@@ -23,6 +23,8 @@ type TeacherProfile = {
   unterstufeOnly: boolean;
   schoolTrack: string;    // AHS / BHS / BOTH
   allowedForms: string | null; // JSON-Array
+  address: string | null;
+  taxNumber: string | null;
 };
 
 type TrackValue = "AHS" | "BHS" | "ALL";
@@ -331,6 +333,8 @@ export default function TeacherSubjectsPage() {
   }
 
   const range = gradeRangeFor(schoolTrack, level);
+  const profileComplete =
+    !!teacherProfile?.address?.trim() && !!teacherProfile?.taxNumber?.trim();
 
   if (status === "loading") {
     return <main className="min-h-screen bg-gray-50 px-6 py-10">Lade…</main>;
@@ -343,6 +347,23 @@ export default function TeacherSubjectsPage() {
         <p className="text-gray-600 mb-6">
           Lege fest, welche Fächer du für welche Schulformen und Klassen unterrichtest.
         </p>
+
+        {!loading && !profileComplete && (
+          <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4">
+            <p className="font-semibold text-amber-800 mb-1">Profil unvollständig</p>
+            <p className="text-sm text-amber-700 mb-3">
+              Bevor du Unterrichtsangebote erstellen kannst, musst du im Profil deine{" "}
+              <strong>Adresse</strong> und deine <strong>Steuernummer / UID</strong> hinterlegen.
+              Diese Angaben werden für korrekte Gutschriften benötigt.
+            </p>
+            <a
+              href="/teacher/profile"
+              className="inline-block bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"
+            >
+              Profil vervollständigen →
+            </a>
+          </div>
+        )}
 
         {unterstufeOnly && (
           <p className="mb-4 text-sm text-blue-700">
@@ -473,8 +494,9 @@ export default function TeacherSubjectsPage() {
 
           <button
             onClick={createOffer}
-            disabled={loading || allowedSubjects.length === 0}
+            disabled={loading || allowedSubjects.length === 0 || !profileComplete}
             className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold disabled:opacity-60"
+            title={!profileComplete ? "Bitte zuerst Adresse und Steuernummer im Profil hinterlegen." : undefined}
           >
             Angebot hinzufügen
           </button>

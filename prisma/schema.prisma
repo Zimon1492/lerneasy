@@ -84,6 +84,7 @@ model Teacher {
   address        String?
   description    String?
   taxNumber      String?
+  svsnr          String?
 
   // Stufen/Schultyp-Einschraenkungen (gesetzt vom Admin beim Anlegen)
   unterstufeOnly Boolean @default(false)

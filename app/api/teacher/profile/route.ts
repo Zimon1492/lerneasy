@@ -34,6 +34,7 @@ export async function GET(req: Request) {
         // sensitive — only for own profile
         address: true,
         taxNumber: true,
+        svsnr: true,
         ratings: { select: { stars: true } },
       },
     });
@@ -58,6 +59,7 @@ export async function GET(req: Request) {
       // Mask sensitive fields for anyone other than the teacher themselves
       address: isSelf ? teacher.address : undefined,
       taxNumber: isSelf ? teacher.taxNumber : undefined,
+      svsnr: isSelf ? teacher.svsnr : undefined,
     };
 
     return NextResponse.json({ ok: true, data });
@@ -104,11 +106,12 @@ export async function PATCH(req: Request) {
     if (typeof body.address === "string") data.address = body.address.trim();
     if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
     if (typeof body.taxNumber === "string") data.taxNumber = body.taxNumber.trim();
+    if (typeof body.svsnr === "string") data.svsnr = body.svsnr.trim();
 
     const updated = await prisma.teacher.update({
       where: { id: teacher.id },
       data,
-      select: { id: true, name: true, description: true, address: true, taxNumber: true },
+      select: { id: true, name: true, description: true, address: true, taxNumber: true, svsnr: true },
     });
 
     return NextResponse.json({ ok: true, data: updated });

@@ -12,6 +12,7 @@ type Profile = {
   address: string | null;
   description: string | null;
   taxNumber: string | null;
+  svsnr: string | null;
   avgRating: number | null;
   ratingCount: number;
 };
@@ -45,6 +46,7 @@ export default function TeacherProfilePage() {
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [taxNumber, setTaxNumber] = useState("");
+  const [svsnr, setSvsnr] = useState("");
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingPic, setUploadingPic] = useState(false);
@@ -67,6 +69,7 @@ export default function TeacherProfilePage() {
     setAddress(p?.address ?? "");
     setDescription(p?.description ?? "");
     setTaxNumber(p?.taxNumber ?? "");
+    setSvsnr(p?.svsnr ?? "");
     setPicPreview(p?.profilePicture ?? null);
 
     if (p?.id) {
@@ -91,7 +94,7 @@ export default function TeacherProfilePage() {
     const res = await fetch("/api/teacher/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: session.user.email, name, address, description, taxNumber }),
+      body: JSON.stringify({ email: session.user.email, name, address, description, taxNumber, svsnr }),
     });
     const json = await res.json().catch(() => ({}));
     setMsg(res.ok ? "Gespeichert." : json?.error ?? "Fehler");
@@ -183,14 +186,31 @@ export default function TeacherProfilePage() {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Steuernummer / SVS-Nummer{" "}
+            Steuernummer / UID{" "}
             <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <input
             type="text"
             value={taxNumber}
             onChange={(e) => setTaxNumber(e.target.value)}
-            placeholder="z.B. 12 345/6789 oder SVNR"
+            placeholder="z.B. ATU12345678 oder 12 345/6789"
+            className="w-full border rounded-lg px-3 py-2"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Wird auf deiner Gutschrift angegeben. Nur intern gespeichert.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Sozialversicherungsnummer{" "}
+            <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={svsnr}
+            onChange={(e) => setSvsnr(e.target.value)}
+            placeholder="z.B. 1234 010190"
             className="w-full border rounded-lg px-3 py-2"
           />
           <p className="text-xs text-gray-400 mt-1">

@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "app/api/admin/applications/[id]/send-contract/route": ["./contracts/**/*"],
   },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+    ],
+  },
   async headers() {
     return [
       {

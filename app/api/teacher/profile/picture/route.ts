@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import { logError } from "@/app/lib/logError";
-import fs from "fs";
-import path from "path";
+import { put } from "@vercel/blob";
 
 export const runtime = "nodejs";
 
@@ -40,22 +39,16 @@ export async function POST(req: Request) {
     }
 
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+    const filename = `profiles/teacher-${teacher.id}-${Date.now()}.${ext}`;
 
-    const filename = `${Date.now()}-teacher-${teacher.id}.${ext}`;
-    const dir = path.join(process.cwd(), "public", "uploads", "profiles");
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    fs.writeFileSync(path.join(dir, filename), buffer);
-
-    const url = `/uploads/profiles/${filename}`;
+    const blob = await put(filename, file, { access: "public" });
 
     await prisma.teacher.update({
       where: { id: teacher.id },
-      data: { profilePicture: url },
+      data: { profilePicture: blob.url },
     });
 
-    return NextResponse.json({ ok: true, url });
+    return NextResponse.json({ ok: true, url: blob.url });
   } catch (err) {
     logError("app/api/teacher/profile/picture POST", err).catch(() => {});
     return NextResponse.json({ error: "Serverfehler" }, { status: 500 });

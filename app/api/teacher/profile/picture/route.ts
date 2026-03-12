@@ -41,7 +41,10 @@ export async function POST(req: Request) {
     const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
     const filename = `profiles/teacher-${teacher.id}-${Date.now()}.${ext}`;
 
-    const blob = await put(filename, file, { access: "public" });
+    const blob = await put(filename, file, {
+      access: "public",
+      token: process.env.BLOB_PUBLIC_READ_WRITE_TOKEN,
+    });
 
     await prisma.teacher.update({
       where: { id: teacher.id },

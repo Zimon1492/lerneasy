@@ -32,16 +32,16 @@ export default function TeacherApplySection() {
   const [schoolTrack, setSchoolTrack] = useState<SchoolTrack>("BOTH");
   const [levelPref, setLevelPref] = useState<LevelPref>("BOTH");
   const [selectedForms, setSelectedForms] = useState<Set<string>>(new Set());
-  const [allAhs, setAllAhs] = useState(true);
-  const [allBhs, setAllBhs] = useState(true);
+  const [allAhs, setAllAhs] = useState(false);
+  const [allBhs, setAllBhs] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   function onTrackChange(v: SchoolTrack) {
     setSchoolTrack(v);
     if (v === "BHS") setLevelPref("OBERSTUFE");
     setSelectedForms(new Set());
-    setAllAhs(true);
-    setAllBhs(true);
+    setAllAhs(false);
+    setAllBhs(false);
   }
 
   function toggleForm(value: string) {
@@ -120,8 +120,8 @@ export default function TeacherApplySection() {
       setSchoolTrack("BOTH");
       setLevelPref("BOTH");
       setSelectedForms(new Set());
-      setAllAhs(true);
-      setAllBhs(true);
+      setAllAhs(false);
+      setAllBhs(false);
       setLoading(false);
     } catch (e: any) {
       setErr(`Netzwerkfehler: ${e?.message || e}`);

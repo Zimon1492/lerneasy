@@ -4,6 +4,7 @@ import prisma from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 import { logError } from "@/app/lib/logError";
 import { rateLimit } from "@/lib/rateLimit";
+import { isValidEmail } from "@/app/lib/validateEmail";
 
 type SchoolTrack = "AHS" | "BHS";
 type SchoolLevel = "UNTERSTUFE" | "OBERSTUFE";
@@ -56,6 +57,13 @@ export async function POST(req: Request) {
     if (!email || !password) {
       return NextResponse.json(
         { error: "E-Mail oder Passwort fehlt" },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { error: "Ungültige E-Mail-Adresse." },
         { status: 400 }
       );
     }

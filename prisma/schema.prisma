@@ -205,10 +205,64 @@ model Booking {
   // ✅ OPTIONAL aber sauber: Chat kann auf Booking zeigen
   chats Chat[]
 
+  // Rechnungen/Belege (ein Zahlungsbeleg + eine Gutschrift pro Buchung)
+  invoices Invoice[]
+
   @@index([studentId])
   @@index([teacherId])
   @@index([start])
   @@index([availabilityId])
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  bookingId     String
+
+  // "zahlungsbeleg" (für Schüler) oder "gutschrift" (für Lehrer, § 11 Abs. 8 UStG)
+  type String
+
+  // Ausstellerdaten (LernEasy – Snapshot aus Env-Variablen)
+  issuerName    String
+  issuerAddress String
+  issuerUid     String?
+
+  // Schülerdaten
+  studentName  String
+  studentEmail String
+
+  // Lehrerdaten
+  teacherName      String
+  teacherEmail     String
+  teacherAddress   String?
+  teacherTaxNumber String?   // UID/Steuernummer des Lehrers (falls vorhanden)
+
+  // Leistungsdetails
+  subject          String?
+  serviceDate      DateTime
+  serviceStartTime String    // z.B. "14:00"
+  serviceEndTime   String    // z.B. "15:30"
+  durationMinutes  Int
+
+  // Beträge
+  priceCents  Int           // Bruttobetrag (was der Schüler gezahlt hat)
+  currency    String        @default("eur")
+  taxRatePct  Float         @default(0)
+
+  // Nur für Gutschrift (Provisionsabrechnung)
+  commissionCents Int?      // Plattform-Provision
+  teacherNetCents Int?      // Auszahlung an Lehrer
+  teacherSharePct Float?    // z.B. 0.70
+
+  issuedAt DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, type])
+  @@index([issuedAt])
+  @@index([type])
+  @@index([teacherEmail])
+  @@index([studentEmail])
 }
 
 model TeacherRating {
@@ -336,6 +390,15 @@ model ChatMessage {
 
   @@index([chatId])
   @@index([createdAt])
+}
+
+// Persistenter Rate-Limiter für serverless Deployments (Vercel)
+model RateLimitEntry {
+  key     String   @id
+  count   Int      @default(1)
+  resetAt DateTime
+
+  @@index([resetAt])
 }
 
 model PlatformSettings {

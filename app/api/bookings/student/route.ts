@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import { logError } from "@/app/lib/logError";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 function combineDateAndTime(dateObj: Date, time: string) {
   const yyyyMmDd = dateObj.toISOString().split("T")[0];
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
         data: {
           email,
           name: studentName,
-          password: "temp", // später sauber lösen
+          password: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10),
           role: "student",
         },
         select: {

@@ -3,6 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { stripe } from "../../../../lib/stripe";
 import { prisma } from "../../../../lib/prisma";
+import { createInvoicesForBooking } from "../../../../app/lib/invoiceUtils";
+import { sendZahlungsbeleg, sendGutschrift } from "../../../../app/lib/mailer";
 
 //
 //  Webhook.ts:
@@ -85,13 +87,64 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     case "payment_intent.succeeded": {
       const pi = event.data.object as Stripe.PaymentIntent;
       if (pi.transfer_group) {
+        const bookingId = pi.transfer_group;
         await prisma.booking.updateMany({
           where: {
-            id: pi.transfer_group,
+            id: bookingId,
             status: { notIn: ["paid", "declined", "student_cancelled", "teacher_cancelled", "canceled_by_system"] },
           },
           data: { status: "paid", stripePaymentIntentId: pi.id },
         });
+
+        // Beide Dokumente erstellen und versenden
+        try {
+          const { zahlungsbeleg, gutschrift } = await createInvoicesForBooking(bookingId);
+
+          await Promise.allSettled([
+            // Zahlungsbeleg an Schüler
+            sendZahlungsbeleg({
+              to:               zahlungsbeleg.studentEmail,
+              invoiceNumber:    zahlungsbeleg.invoiceNumber,
+              issuerName:       zahlungsbeleg.issuerName,
+              issuerAddress:    zahlungsbeleg.issuerAddress,
+              issuerUid:        zahlungsbeleg.issuerUid,
+              teacherName:      zahlungsbeleg.teacherName,
+              subject:          zahlungsbeleg.subject,
+              serviceDate:      zahlungsbeleg.serviceDate,
+              serviceStartTime: zahlungsbeleg.serviceStartTime,
+              serviceEndTime:   zahlungsbeleg.serviceEndTime,
+              durationMinutes:  zahlungsbeleg.durationMinutes,
+              priceCents:       zahlungsbeleg.priceCents,
+              currency:         zahlungsbeleg.currency,
+              issuedAt:         zahlungsbeleg.issuedAt,
+            }),
+            // Gutschrift an Lehrer
+            sendGutschrift({
+              to:               gutschrift.teacherEmail,
+              invoiceNumber:    gutschrift.invoiceNumber,
+              issuerName:       gutschrift.issuerName,
+              issuerAddress:    gutschrift.issuerAddress,
+              issuerUid:        gutschrift.issuerUid,
+              teacherName:      gutschrift.teacherName,
+              teacherAddress:   gutschrift.teacherAddress,
+              teacherTaxNumber: gutschrift.teacherTaxNumber,
+              subject:          gutschrift.subject,
+              serviceDate:      gutschrift.serviceDate,
+              serviceStartTime: gutschrift.serviceStartTime,
+              serviceEndTime:   gutschrift.serviceEndTime,
+              durationMinutes:  gutschrift.durationMinutes,
+              priceCents:       gutschrift.priceCents,
+              commissionCents:  gutschrift.commissionCents!,
+              teacherNetCents:  gutschrift.teacherNetCents!,
+              teacherSharePct:  gutschrift.teacherSharePct!,
+              currency:         gutschrift.currency,
+              issuedAt:         gutschrift.issuedAt,
+            }),
+          ]);
+          console.log("✅ Belege erstellt:", zahlungsbeleg.invoiceNumber, gutschrift.invoiceNumber);
+        } catch (err) {
+          console.error("❌ Fehler beim Erstellen der Belege:", err);
+        }
       }
       break;
     }

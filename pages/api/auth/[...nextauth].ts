@@ -4,6 +4,7 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { rateLimitDb } from "../../../lib/rateLimitDb";
 
 const prisma = new PrismaClient();
 
@@ -22,6 +23,11 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
+
+        // Rate limit: 10 Versuche pro E-Mail pro 15 Minuten
+        const key = `login:teacher:${credentials.email.toLowerCase()}`;
+        const allowed = await rateLimitDb(key, 10, 15 * 60 * 1000);
+        if (!allowed) throw new Error("Zu viele Anmeldeversuche. Bitte warte 15 Minuten.");
 
         const teacher = await prisma.teacher.findUnique({
           where: { email: credentials.email },
@@ -50,6 +56,11 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
+
+        // Rate limit: 10 Versuche pro E-Mail pro 15 Minuten
+        const key = `login:student:${credentials.email.toLowerCase()}`;
+        const allowed = await rateLimitDb(key, 10, 15 * 60 * 1000);
+        if (!allowed) throw new Error("Zu viele Anmeldeversuche. Bitte warte 15 Minuten.");
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },

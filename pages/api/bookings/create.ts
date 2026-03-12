@@ -5,6 +5,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
 import { stripe } from "../../../lib/stripe";
 import { logError } from "@/app/lib/logError";
+import { MAX_BOOKING_PRICE_CENTS } from "@/app/lib/invoiceUtils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
@@ -34,6 +35,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       select: { id: true, email: true },
     });
     if (!student) return res.status(404).json({ error: "Schüler nicht gefunden." });
+
+    // 2b) €400-Limit
+    const price = priceCents ?? 5000;
+    if (price > MAX_BOOKING_PRICE_CENTS) {
+      return res.status(400).json({
+        error: `Der Buchungsbetrag (${(price / 100).toFixed(2)} €) überschreitet das Maximum von ${(MAX_BOOKING_PRICE_CENTS / 100).toFixed(0)} € pro Termin.`,
+      });
+    }
 
     // 3) Booking anlegen (pending, noch kein Stripe)
     const booking = await prisma.booking.create({

@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { logError } from "@/app/lib/logError";
-import { rateLimit } from "@/lib/rateLimit";
+import { rateLimitDb } from "@/lib/rateLimitDb";
 import { makeAdminCookieValue } from "@/app/api/admin/_auth";
 
 export const runtime = "nodejs";
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   // Rate limit: 5 attempts per IP per 15 minutes
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  if (!rateLimit(`admin-login:${ip}`, 5, 15 * 60 * 1000)) {
+  if (!await rateLimitDb(`admin-login:${ip}`, 5, 15 * 60 * 1000)) {
     return NextResponse.json(
       { error: "Zu viele Anmeldeversuche. Bitte warte 15 Minuten." },
       { status: 429 }

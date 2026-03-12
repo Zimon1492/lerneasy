@@ -4,6 +4,8 @@ import prisma from "@/app/lib/prisma";
 import { logError } from "@/app/lib/logError";
 import { rateLimit } from "@/lib/rateLimit";
 import { calcPriceCents } from "@/app/lib/pricing";
+import { MAX_BOOKING_PRICE_CENTS } from "@/app/lib/invoiceUtils";
+import { isValidEmail } from "@/app/lib/validateEmail";
 import { getPlatformSettings } from "@/app/lib/settings";
 import { getStudentSession } from "@/app/lib/auth";
 import { escapeHtml } from "@/app/lib/escapeHtml";
@@ -52,6 +54,13 @@ export async function POST(req: Request) {
     if (!teacherId || !studentEmail || !start || !end) {
       return NextResponse.json(
         { error: "teacherId, studentEmail, start oder end fehlt" },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidEmail(studentEmail)) {
+      return NextResponse.json(
+        { error: "Ungültige E-Mail-Adresse." },
         { status: 400 }
       );
     }
@@ -181,6 +190,16 @@ export async function POST(req: Request) {
     const durationMinutes = (endDate.getTime() - startDate.getTime()) / 60_000;
     const settings = await getPlatformSettings();
     const priceCents = calcPriceCents(durationMinutes, ratingCount, avgRating, settings.priceMin, settings.priceMax, settings.priceN);
+
+    // 5b) €400-Limit für Kleinbetragsrechnung
+    if (priceCents > MAX_BOOKING_PRICE_CENTS) {
+      return NextResponse.json(
+        {
+          error: `Der Buchungsbetrag (${(priceCents / 100).toFixed(2)} €) überschreitet das Maximum von ${(MAX_BOOKING_PRICE_CENTS / 100).toFixed(0)} € pro Termin. Bitte wähle einen kürzeren Zeitraum.`,
+        },
+        { status: 400 }
+      );
+    }
 
     // 6) Booking erstellen
     const booking = await prisma.booking.create({

@@ -114,7 +114,15 @@ export default function TeacherPaymentsPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("stripeReturn") === "1" || params.get("stripeRefresh") === "1") {
+      // Sync Stripe Connect status before loading page data
+      fetch("/api/teacher/stripe-connect", { cache: "no-store" }).finally(() => load());
+    } else {
+      load();
+    }
+  }, []);
 
   async function connectStripe() {
     setConnectLoading(true);

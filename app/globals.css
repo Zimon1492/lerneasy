@@ -17,3 +17,28 @@ body {
 /* Hide horizontal scrollbar in carousels */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* FullCalendar fixes */
+.fc .fc-button .fc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 1rem;
+}
+.fc .fc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+/* Smaller title on mobile */
+@media (max-width: 767px) {
+  .fc .fc-toolbar-title {
+    font-size: 1rem !important;
+  }
+  .fc .fc-toolbar {
+    gap: 0.25rem;
+  }
+}

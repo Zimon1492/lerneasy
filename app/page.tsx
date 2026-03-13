@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import AuthModal from "./components/AuthModal";
@@ -18,6 +19,18 @@ type Rating = {
   studentName: string;
   teacherSubject: string;
 };
+
+function VerifiedBanner({ onLogin }: { onLogin: () => void }) {
+  const params   = useSearchParams();
+  const verified = params?.get("verified") === "1";
+  if (!verified) return null;
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium">
+      <span>✅ E-Mail erfolgreich bestätigt! Du kannst dich jetzt einloggen.</span>
+      <button onClick={onLogin} className="underline hover:no-underline">Einloggen</button>
+    </div>
+  );
+}
 
 export default function Home() {
   const [showAuth, setShowAuth] = useState(false);
@@ -38,6 +51,11 @@ export default function Home() {
     <main className="min-h-screen">
       {/* 🔹 Auth Modal */}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+      {/* 🔹 E-Mail-Bestätigung Banner */}
+      <Suspense fallback={null}>
+        <VerifiedBanner onLogin={() => setShowAuth(true)} />
+      </Suspense>
 
       {/* 🔹 HERO */}
       <section className="relative w-full min-h-[480px] md:min-h-[580px] flex items-center overflow-hidden">

@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     });
     await prisma.emailVerificationToken.delete({ where: { token } });
 
-    return NextResponse.redirect(new URL("/verify-email?success=1", req.url));
+    return NextResponse.redirect(new URL("/?verified=1", req.url));
   } catch (err) {
     logError("api/verify-email GET", err).catch(() => {});
     return NextResponse.redirect(new URL("/verify-email?error=server", req.url));

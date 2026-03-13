@@ -2,9 +2,13 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { logError } from "@/app/lib/logError";
 import { rateLimit } from "@/lib/rateLimit";
 import { isValidEmail } from "@/app/lib/validateEmail";
+import { sendVerificationEmail } from "@/app/lib/mailer";
+
+export const runtime = "nodejs";
 
 type SchoolTrack = "AHS" | "BHS";
 type SchoolLevel = "UNTERSTUFE" | "OBERSTUFE";
@@ -113,8 +117,6 @@ export async function POST(req: Request) {
         email,
         password: hash,
         role: "student",
-
-        // ✅ RICHTIG (statt schoolType!)
         schoolTrack,
         schoolForm,
         schoolName,
@@ -124,7 +126,20 @@ export async function POST(req: Request) {
       select: { id: true, email: true, name: true },
     });
 
-    return NextResponse.json({ ok: true, user: created });
+    // Verification-Token erstellen (24h gültig)
+    const token = crypto.randomBytes(32).toString("hex");
+    await prisma.emailVerificationToken.create({
+      data: {
+        token,
+        userId: created.id,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    // Bestätigungsmail senden
+    await sendVerificationEmail(created.email, created.name, token).catch(() => {});
+
+    return NextResponse.json({ ok: true, requiresVerification: true });
   } catch (err) {
     logError("app/api/register POST", err).catch(() => {});
     console.error("POST /api/register error:", err);

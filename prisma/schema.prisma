@@ -61,12 +61,25 @@ model User {
   profilePicture String?
   address        String?
 
+  emailVerified       DateTime?
+  verificationTokens  EmailVerificationToken[]
+
   bookings            Booking[]                @relation("studentBookings")
   ratings             TeacherRating[]
   passwordResetTokens UserPasswordResetToken[]
 
   @@index([email])
   @@index([schoolTrack, schoolForm, level, grade])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Teacher {

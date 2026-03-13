@@ -375,6 +375,49 @@ export async function sendStornobeleg(inv: {
   });
 }
 
+// ─── 4) E-Mail-Bestätigung → an neuen Schüler ────────────────────────────────
+
+export async function sendVerificationEmail(to: string, name: string | null, token: string) {
+  const transporter = getMailer();
+  const from        = process.env.FROM_EMAIL ?? process.env.MAIL_FROM;
+  const baseUrl     = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+  const link        = `${baseUrl}/verify-email?token=${token}`;
+  const issuerName  = process.env.COMPANY_NAME ?? "LernEasy";
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="utf-8"><title>E-Mail bestätigen</title></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#333;">
+  ${HEADER(issuerName, process.env.COMPANY_ADDRESS ?? "", null)}
+  <div style="background:#fff;padding:24px 28px;border:1px solid #e2e8f0;border-top:none;">
+    <h2 style="font-size:18px;color:#1e3a5f;margin:0 0 12px;">Willkommen bei ${issuerName}!</h2>
+    <p style="margin:0 0 16px;">Hallo ${name ? name : ""}${name ? "," : ""}</p>
+    <p style="margin:0 0 20px;">Bitte bestätige deine E-Mail-Adresse mit dem folgenden Button. Der Link ist <strong>24 Stunden</strong> gültig.</p>
+    <a href="${link}"
+       style="display:inline-block;background:#1e3a5f;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:15px;">
+      E-Mail bestätigen
+    </a>
+    <p style="margin:24px 0 0;font-size:12px;color:#94a3b8;">
+      Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br>
+      <span style="font-family:monospace;word-break:break-all;">${link}</span>
+    </p>
+    <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">
+      Falls du dich nicht registriert hast, kannst du diese E-Mail ignorieren.
+    </p>
+  </div>
+  ${FOOTER(issuerName)}
+</body>
+</html>`;
+
+  await transporter.sendMail({
+    from,
+    to,
+    subject: `Bitte bestätige deine E-Mail – ${issuerName}`,
+    html,
+    text: `Willkommen bei ${issuerName}!\n\nBitte bestätige deine E-Mail-Adresse:\n${link}\n\nDer Link ist 24 Stunden gültig.`,
+  });
+}
+
 // ─── Buchungsbestätigung ─────────────────────────────────────────────────────
 
 export async function sendBookingAcceptedEmail({

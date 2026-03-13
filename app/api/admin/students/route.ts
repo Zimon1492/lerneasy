@@ -21,6 +21,7 @@ export async function GET(req: Request) {
       schoolForm: true,
       level: true,
       grade: true,
+      emailVerified: true,
       createdAt: true,
       _count: { select: { bookings: true } },
     },

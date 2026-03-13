@@ -10,6 +10,7 @@ type Student = {
   schoolForm: string | null;
   level: string | null;
   grade: number | null;
+  emailVerified: string | null;
   createdAt: string;
   _count: { bookings: number };
 };
@@ -18,6 +19,7 @@ export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [verifiedFilter, setVerifiedFilter] = useState<"all" | "verified" | "unverified">("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
@@ -62,11 +64,16 @@ export default function AdminStudentsPage() {
     load();
   }
 
-  const filtered = students.filter(
-    (s) =>
+  const filtered = students.filter((s) => {
+    const matchesSearch =
       (s.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-      s.email.toLowerCase().includes(search.toLowerCase())
-  );
+      s.email.toLowerCase().includes(search.toLowerCase());
+    const matchesVerified =
+      verifiedFilter === "all" ||
+      (verifiedFilter === "verified" && !!s.emailVerified) ||
+      (verifiedFilter === "unverified" && !s.emailVerified);
+    return matchesSearch && matchesVerified;
+  });
 
   return (
     <div className="p-8">
@@ -83,6 +90,15 @@ export default function AdminStudentsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-64"
           />
+          <select
+            value={verifiedFilter}
+            onChange={(e) => setVerifiedFilter(e.target.value as typeof verifiedFilter)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white"
+          >
+            <option value="all">Alle</option>
+            <option value="verified">✅ Verifiziert</option>
+            <option value="unverified">❌ Nicht verifiziert</option>
+          </select>
           <button
             onClick={() => setShowModal(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
@@ -252,6 +268,7 @@ export default function AdminStudentsPage() {
               <th className="text-left px-5 py-3 font-semibold text-gray-600">Name</th>
               <th className="text-left px-5 py-3 font-semibold text-gray-600">E-Mail</th>
               <th className="text-left px-5 py-3 font-semibold text-gray-600">Schule</th>
+              <th className="text-center px-5 py-3 font-semibold text-gray-600">E-Mail</th>
               <th className="text-center px-5 py-3 font-semibold text-gray-600">Buchungen</th>
               <th className="text-left px-5 py-3 font-semibold text-gray-600">Registriert</th>
               <th className="px-5 py-3"></th>
@@ -266,6 +283,17 @@ export default function AdminStudentsPage() {
                   {[s.schoolTrack, s.schoolForm, s.level, s.grade ? `${s.grade}. Klasse` : null]
                     .filter(Boolean)
                     .join(" · ") || "—"}
+                </td>
+                <td className="px-5 py-3 text-center">
+                  {s.emailVerified ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                      ✅ Verifiziert
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                      ❌ Ausstehend
+                    </span>
+                  )}
                 </td>
                 <td className="px-5 py-3 text-center">{s._count.bookings}</td>
                 <td className="px-5 py-3 text-gray-500 text-xs">

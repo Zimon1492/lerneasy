@@ -16,7 +16,7 @@ type Booking = {
   student: { id: string; name: string | null; email: string };
 };
 
-const STATUS_OPTIONS = ["pending", "checkout_started", "confirmed", "accepted", "paid", "declined", "teacher_cancelled", "payment_failed"];
+const STATUS_OPTIONS = ["pending", "checkout_started", "confirmed", "accepted", "paid", "teacher_paid", "declined", "teacher_cancelled", "payment_failed"];
 
 const STATUS_COLORS: Record<string, string> = {
   pending:              "text-yellow-700 bg-yellow-50 border-yellow-200",
@@ -24,6 +24,7 @@ const STATUS_COLORS: Record<string, string> = {
   confirmed:            "text-blue-700 bg-blue-50 border-blue-200",
   accepted:             "text-green-700 bg-green-50 border-green-200",
   paid:                 "text-green-700 bg-green-100 border-green-300",
+  teacher_paid:         "text-blue-700 bg-blue-100 border-blue-300",
   declined:             "text-red-700 bg-red-50 border-red-200",
   teacher_cancelled:    "text-red-700 bg-red-50 border-red-200",
   payment_failed:       "text-red-700 bg-red-100 border-red-300",

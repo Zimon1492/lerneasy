@@ -21,7 +21,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://pagead2.googlesyndication.com https://adservice.google.com https://www.googletagservices.com https://www.google.com https://ep2.adtrafficquality.google",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
-      "font-src 'self'",
+      "font-src 'self' data:",
       "connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://pagead2.googlesyndication.com https://adservice.google.com https://ep1.adtrafficquality.google wss:",
       "frame-src https://js.stripe.com https://hooks.stripe.com https://connect.stripe.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google",
       "object-src 'none'",

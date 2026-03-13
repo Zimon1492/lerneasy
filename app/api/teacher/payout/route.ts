@@ -153,22 +153,46 @@ export async function POST() {
       select: {
         id: true,
         priceCents: true,
+        stripePaymentIntentId: true,
         teacher: { select: { name: true, email: true, address: true, taxNumber: true } },
       },
     });
 
-    const transfer = await stripe.transfers.create({
-      amount: availableCents,
-      currency: "eur",
-      destination: teacher.stripeConnectAccountId,
-      description: `Auszahlung für Lehrer ${session.user.email}`,
-    });
+    // Pro Buchung einen eigenen Transfer mit source_transaction erstellen.
+    // Dadurch zieht Stripe direkt aus der originalen Charge — kein Platform-Guthaben nötig.
+    const transferIds: string[] = [];
+    for (const b of completedBookingsWithId) {
+      const teacherAmount = Math.floor(b.priceCents * teacherShare);
+      if (teacherAmount < 100) continue; // Stripe-Minimum
+
+      const transferParams: Parameters<typeof stripe.transfers.create>[0] = {
+        amount: teacherAmount,
+        currency: "eur",
+        destination: teacher.stripeConnectAccountId!,
+        transfer_group: b.id,
+      };
+
+      // source_transaction an die originale Charge binden (umgeht Platform-Balance-Prüfung)
+      if (b.stripePaymentIntentId) {
+        try {
+          const pi = await stripe.paymentIntents.retrieve(b.stripePaymentIntentId);
+          if (typeof pi.latest_charge === "string") {
+            transferParams.source_transaction = pi.latest_charge;
+          }
+        } catch {
+          // Charge nicht abrufbar → ohne source_transaction fortfahren
+        }
+      }
+
+      const transfer = await stripe.transfers.create(transferParams);
+      transferIds.push(transfer.id);
+    }
 
     await prisma.teacherPayout.create({
       data: {
         teacherId: teacher.id,
         amountCents: availableCents,
-        stripeTransferId: transfer.id,
+        stripeTransferId: transferIds[0] ?? "multi",
       },
     });
 
@@ -195,12 +219,12 @@ export async function POST() {
           teacherNetCents:  gutschrift.teacherNetCents!,
           teacherSharePct:  gutschrift.teacherSharePct!,
           currency:         gutschrift.currency,
-          issuedAt:         new Date(), // Auszahlungsdatum als Ausstellungsdatum
+          issuedAt:         new Date(),
         });
       })
     ).catch(() => {});
 
-    return NextResponse.json({ ok: true, amountCents: availableCents, transferId: transfer.id });
+    return NextResponse.json({ ok: true, amountCents: availableCents, transferIds });
   } catch (err: any) {
     logError("api/teacher/payout POST", err).catch(() => {});
     const msg = err?.message ?? "Serverfehler";

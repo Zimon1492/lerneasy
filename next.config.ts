@@ -23,7 +23,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
       "connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://pagead2.googlesyndication.com https://adservice.google.com https://ep1.adtrafficquality.google wss:",
-      "frame-src https://js.stripe.com https://hooks.stripe.com https://connect.stripe.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://pagead2.googlesyndication.com",
+      "frame-src https://js.stripe.com https://hooks.stripe.com https://connect.stripe.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

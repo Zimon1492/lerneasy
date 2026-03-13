@@ -98,6 +98,7 @@ export default function TeacherPaymentsPage() {
   const [connectError, setConnectError] = useState<string | null>(null);
   const [payoutLoading, setPayoutLoading] = useState(false);
   const [payoutMsg, setPayoutMsg] = useState<string | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -144,6 +145,19 @@ export default function TeacherPaymentsPage() {
       setConnectError("Verbindung fehlgeschlagen.");
     } finally {
       setConnectLoading(false);
+    }
+  }
+
+  async function openStripeDashboard() {
+    setDashboardLoading(true);
+    try {
+      const res = await fetch("/api/teacher/stripe-connect", { method: "PATCH" });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.url) {
+        window.open(json.url, "_blank");
+      }
+    } finally {
+      setDashboardLoading(false);
     }
   }
 
@@ -233,6 +247,19 @@ export default function TeacherPaymentsPage() {
         ) : (
           /* ── Stripe connected ── */
           <div className="space-y-4">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
+                <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                Stripe Express verbunden
+              </div>
+              <button
+                onClick={openStripeDashboard}
+                disabled={dashboardLoading}
+                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium disabled:opacity-50 flex items-center gap-1"
+              >
+                {dashboardLoading ? "Öffne..." : "→ Mein Stripe-Konto öffnen"}
+              </button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
                 <div className="text-xs text-gray-500 mb-0.5">Verdient gesamt</div>

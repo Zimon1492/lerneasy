@@ -49,6 +49,30 @@ export async function GET() {
   }
 }
 
+// PATCH — create a login link to the Stripe Express dashboard
+export async function PATCH() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || (session.user as any).role !== "teacher") {
+      return NextResponse.json({ error: "Nicht eingeloggt." }, { status: 401 });
+    }
+
+    const teacher = await prisma.teacher.findUnique({
+      where: { email: session.user.email },
+      select: { stripeConnectAccountId: true, stripeConnectOnboarded: true },
+    });
+    if (!teacher?.stripeConnectAccountId || !teacher.stripeConnectOnboarded) {
+      return NextResponse.json({ error: "Kein verifiziertes Stripe-Konto." }, { status: 400 });
+    }
+
+    const loginLink = await stripe.accounts.createLoginLink(teacher.stripeConnectAccountId);
+    return NextResponse.json({ url: loginLink.url });
+  } catch (err) {
+    logError("api/teacher/stripe-connect PATCH", err).catch(() => {});
+    return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
+  }
+}
+
 // POST — create (or refresh) Stripe Express onboarding link
 export async function POST() {
   try {

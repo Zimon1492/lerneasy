@@ -1,0 +1,394 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     LERNEASY – TEST-CHECKLISTE                             ║
+║                     Stand: März 2026                                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Legende:  [ ] = noch nicht getestet   [OK] = bestanden   [X] = Fehler gefunden
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. ÖFFENTLICHE SEITEN (kein Login nötig)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Homepage  [1 Change WIP]
+  [OK] Seite lädt ohne Fehler
+  [OK] Lehrerkacheln / Karussell werden angezeigt
+  [OK] "Jetzt buchen"-Button öffnet den Login/Registrierungsdialog
+  [OK] "Lehrer-Login"-Button leitet zur Lehrer-Loginseite weiter
+  [X] Bewertungen (Testimonials) werden angezeigt (wenn vorhanden)
+  [OK] Ablauf-Sektion (3 Schritte) sichtbar
+  [OK] Footer-Links funktionieren: AGB, Datenschutz, Impressum
+  [OK] Cookie-Banner erscheint beim ersten Besuch
+  [OK] Cookie-Einstellungen können geändert werden
+
+Lehrerbewerbungsformular (auf der Homepage) [OK]
+  [OK] Formular ist sichtbar und scrollbar
+  [OK] Fach-Picker lädt alle 20 Fächer aus der Datenbank
+  [OK] Fach tippen → Dropdown zeigt passende Vorschläge
+  [OK] Fach anklicken → wird als blauer Chip fixiert
+  [OK] Fach per Enter auswählen funktioniert
+  [OK] Backspace entfernt letztes Fach
+  [OK] × auf Chip entfernt das Fach
+  [OK] Bereits ausgewähltes Fach erscheint nicht mehr im Dropdown
+  [OK] Schultyp-Auswahl (AHS / BHS / Beide) funktioniert
+  [OK] BHS-Auswahl → Schulstufe wird auf "Oberstufe" fixiert
+  [OK] Schulformen-Checkboxen erscheinen korrekt je nach Schultyp
+  [OK] "Alle AHS-Formen" Checkbox wählt alle aus
+  [OK] "Alle BHS-Formen" Checkbox wählt alle aus
+  [OK] Datenschutz-Checkbox muss aktiviert sein vor dem Absenden
+  [OK] PDF-Upload: nur PDF erlaubt (andere Dateiformate werden abgelehnt)
+  [OK] PDF-Upload: Datei > 10 MB wird abgelehnt
+  [OK] Absenden ohne Fach → Fehlermeldung "Bitte wähle mindestens ein Fach"
+  [OK] Absenden ohne Pflichtfelder → Fehlermeldung
+  [OK] Erfolgreiche Bewerbung → Bestätigungsmeldung erscheint
+  [OK] Bewerbungs-E-Mail geht beim Admin ein
+  [OK] Bestätigungs-E-Mail geht beim Bewerber ein
+  [Kann sein] Rate Limit: mehr als 3 Bewerbungen/Stunde von gleicher IP → abgelehnt
+
+Rechtliche Seiten
+  [OK] /agb lädt korrekt
+  [OK] /datenschutz lädt korrekt
+  [OK] /impressum lädt korrekt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. SCHÜLER – REGISTRIERUNG & LOGIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Registrierung
+  [OK] Registrierung mit gültigen Daten funktioniert
+  [OK] Ungültige E-Mail-Adresse → Fehlermeldung
+  [OK] Passwort unter 8 Zeichen → Fehlermeldung
+  [OK] Bereits vorhandene E-Mail → Fehlermeldung
+  [OK] Pflichtfelder (Schultyp, Schulform, Stufe, Klasse) werden validiert
+  [OK] Klasse außerhalb des gültigen Bereichs → Fehlermeldung
+  [OK] Rate Limit: > 5 Versuche/Stunde → abgelehnt
+
+Login
+  [OK] Login mit korrekten Daten funktioniert
+  [OK] Login mit falschem Passwort → Fehlermeldung
+  [OK] Login mit unbekannter E-Mail → Fehlermeldung
+  [I guess] Rate Limit: > 10 Versuche/15 Min. pro E-Mail → gesperrt mit Hinweis
+  [OK] Nach Login → Weiterleitung zum Schüler-Dashboard
+
+Passwort vergessen [x]
+  [OK] "Passwort vergessen"-Flow startet korrekt
+  [OK] E-Mail mit Reset-Link wird zugestellt
+  [OK] Reset-Link funktioniert und öffnet Passwort-setzen-Seite
+  [OK] Abgelaufener/ungültiger Token → Fehlermeldung
+  [OK] Neues Passwort wird korrekt gesetzt, Login funktioniert danach
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. SCHÜLER – DASHBOARD & BUCHUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dashboard
+  [OK] Dashboard lädt nach Login
+  [OK] Fach-Filter-Chips (20 Fächer) werden angezeigt
+  [OK] Fach-Filter filtert die Lehrerliste korrekt
+  [OK] Lehrerkarten zeigen Name, Fach, Bewertung, Preis
+  [OK] Suche nach Lehrern funktioniert
+
+Lehrerprofil & Verfügbarkeit
+  [OK] Lehrerprofil-Seite öffnet sich
+  [OK] Verfügbare Termine werden angezeigt
+  [OK] Bereits gebuchte Slots sind nicht buchbar
+
+Buchungsprozess
+  [OK] Termin auswählen und buchen → Buchung wird erstellt (Status: pending)
+  [OK] Buchung unter 30 Minuten → Fehlermeldung
+  [OK] Buchung nicht für heute möglich (frühestens morgen)
+  [OK] Buchung > 400 € → Fehlermeldung ("Betrag überschreitet Maximum")
+  [OK] Überschneidung mit bestehender Buchung → Fehlermeldung
+  [OK] Stripe Checkout öffnet sich für Zahlungsmethode
+  [OK] Testkarte eingeben → Zahlung erfolgreich
+  [OK] Nach Zahlung: Buchung Status = "paid"
+  [OK] Nach Zahlung: Schüler erhält Zahlungsbeleg per E-Mail (RE-YYYY-NNNN)
+  [OK] Nach Zahlung: Lehrer erhält Gutschrift per E-Mail (GA-YYYY-NNNN)
+  [OK] Rate Limit: > 10 Buchungsversuche/10 Min. → abgelehnt
+
+Buchungsverwaltung
+  [OK] Eigene Buchungen werden in der Übersicht angezeigt
+  [OK] Buchung stornieren (Status: pending/checkout_started) funktioniert
+  [OK] Bereits bezahlte Buchung kann nicht storniert werden
+  [I guess] Versuch, Buchung eines anderen Schülers zu stornieren → 403 Fehler
+
+Bewertung
+  [OK] Nach abgeschlossenem Termin: Bewertung abgeben möglich
+  [OK] Bewertung 1–5 Sterne + Kommentar speichern
+  [OK] Zweite Bewertung für denselben Lehrer überschreibt die erste
+
+Chat
+  [OK] Chat mit Lehrer öffnen
+  [OK] Nachricht senden und empfangen
+  [OK] Ungelesene Nachrichten werden markiert
+
+Profil
+  [OK] Profildaten einsehen
+  [OK] Profildaten bearbeiten (Name, Adresse, Schulinfo)
+  [OK] Adresse im Profil hinterlegen (relevant für Belege)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. LEHRER – LOGIN & SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Erster Login (nach Admin-Einladung)
+  [OK] E-Mail mit Passwort-Setup-Link wird zugestellt
+  [OK]Link öffnet Passwort-setzen-Seite (/teacher/set-password?token=...)
+  [OK] Passwort setzen funktioniert
+  [I guess] Abgelaufener Token (> 7 Tage) → Fehlermeldung
+  [OK] Nach Passwort-Setzen: Login funktioniert
+
+Login
+  [OK] Login mit korrekten Daten → Weiterleitung zum Lehrer-Dashboard
+  [OK] Login mit falschem Passwort → Fehlermeldung
+  [I guess] Rate Limit: > 10 Versuche/15 Min. → gesperrt
+  [OK] "Passwort ändern bei nächstem Login"-Flag: Lehrer wird zum Ändern gezwungen
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. LEHRER – DASHBOARD & FUNKTIONEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dashboard
+  [OK] Dashboard lädt nach Login
+  [OK] Kommende Buchungen werden angezeigt
+  [OK] Einnahmen-Übersicht sichtbar
+
+Verfügbarkeiten
+  [OK] Neue Verfügbarkeit (Datum + Uhrzeit) erstellen
+  [OK] Verfügbarkeit bearbeiten
+  [OK] Verfügbarkeit löschen
+  [OK] Wochenplan (wiederkehrende Zeiten) einrichten
+  [OK] Abwesenheit/Sperre eintragen (TeacherUnavailability)
+
+Unterrichtsangebote [x]
+  [OK] Neues Angebot erstellen (Fach, Schulform, Klasse)
+  [OK] Angebot löschen
+  [OK] Doppeltes Angebot → wird abgelehnt
+
+Buchungsverwaltung
+  [OK] Eigene Buchungen einsehen
+  [OK] Buchung absagen (teacher_cancelled)
+
+Chat
+  [OK] Chat mit Schüler öffnen und Nachrichten senden
+  [OK] Ungelesene Nachrichten werden angezeigt
+
+Stripe Connect (Auszahlungen)
+  [OK] Stripe Connect Onboarding starten
+  [OK] Onboarding-Link öffnet Stripe-Seite
+  [OK] Nach abgeschlossenem Onboarding: Status "verbunden" sichtbar
+  [OK] Verfügbares Guthaben wird angezeigt (Einnahmen - bereits ausgezahlt)
+  [ ] Auszahlung beantragen → Stripe Transfer wird ausgelöst
+  [ ] Auszahlung erscheint in der Auszahlungshistorie
+
+Profil
+  [OK] Profilbild hochladen
+  [OK] Beschreibung / Bio bearbeiten
+  [OK] Adresse hinterlegen (erscheint auf Gutschrift)
+  [OK] Steuernummer/UID hinterlegen (erscheint auf Gutschrift)
+
+Bewertungen
+  [OK] Eigene Bewertungen einsehen
+  [OK] Durchschnittsbewertung wird korrekt berechnet
+  [OK] Preis steigt mit mehr/besseren Bewertungen (Preisformel)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. ADMIN – LOGIN & ZUGRIFF
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] /admin/login lädt korrekt
+  [OK] Login mit richtigem ADMIN_KEY → Weiterleitung zum Dashboard
+  [OK] Login mit falschem Passwort → Fehlermeldung
+  [I guess] Rate Limit: > 5 Versuche/15 Min. von gleicher IP → gesperrt
+  [OK] Direktzugriff auf /admin/* ohne Login → Weiterleitung zu /admin/login
+  [I guess] Gefälschter Cookie (ohne gültige HMAC-Signatur) → wird abgewiesen
+  [OK] Abmelden → Cookie wird gelöscht, kein Zugriff mehr
+  [I guess] Cookie läuft nach 24 Stunden ab
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. ADMIN – LEHRERVERWALTUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] Lehrerliste wird angezeigt (Name, E-Mail, Fach, Buchungsanzahl)
+  [OK] Neuen Lehrer anlegen (/admin/teachers/new)
+  [OK] Lehrer mit bereits vorhandener E-Mail anlegen → Fehlermeldung
+  [OK] Passwort-Setup-Link erneut senden → Lehrer erhält neue E-Mail
+  [OK] Lehrer bearbeiten (Name, E-Mail, Fächer, Schulform-Einschränkungen)
+  [OK] Lehrer löschen → Buchungen werden kaskadierend gelöscht
+  [I guess] Lehrer-Details anzeigen (inkl. Buchungshistorie)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. ADMIN – SCHÜLERVERWALTUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] Schülerliste wird angezeigt
+  [OK] Schülerdetails einsehen
+  [OK] Schülerprofil bearbeiten
+  [OK] Schüler löschen
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. ADMIN – BUCHUNGSVERWALTUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] Alle Buchungen werden angezeigt
+  [X] Filter nach Status funktioniert (pending, paid, declined, ...)
+  [I guess] Suche nach Lehrer- oder Schülername funktioniert
+  [OK] Buchungsstatus manuell ändern (Dropdown)
+  [OK] Buchung löschen
+  [OK] Betrag und Währung werden korrekt angezeigt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. ADMIN – BEWERBUNGSVERWALTUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] Bewerbungsliste wird angezeigt
+  [OK] Bewerbungsdetails (Motivation, Fächer, Schulpräferenzen) einsehen
+  [OK] PDF (Zeugnis/Lebenslauf) herunterladen/ansehen
+  [OK] Status-Badges: Neu, Vertrag gesendet, Aktiv, Abgelehnt
+  [OK] "Vertrag senden" → PDF-Vertrag wird per E-Mail an Bewerber geschickt
+  [OK]"Vertrag bestätigen" → Lehrer-Account wird automatisch angelegt
+  [OK] Nach Bestätigung: Lehrer erhält Passwort-Setup-E-Mail
+  [OK] Bewerbung löschen
+  [OK] Bewerbung von unbekannter E-Mail (zweite Einreichung) überschreibt alte
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. ADMIN – BELEGE & RECHNUNGEN (/admin/invoices)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] Belege-Seite lädt
+  [OK] Tab "Zahlungsbelege (Schüler)" zeigt RE-Belege
+  [OK] Tab "Gutschriften (Lehrer)" zeigt GA-Gutschriften
+  [OK] Rechnungsnummer im Format RE-YYYY-NNNN / GA-YYYY-NNNN
+  [OK] Suche nach Name/Fach/Rechnungsnummer funktioniert
+  [OK] Zusammenfassung (Anzahl, Gesamtumsatz, Provision) wird berechnet
+  [OK] "Excel exportieren" → .xlsx wird heruntergeladen
+  [OK] Excel hat 2 Sheets: "Zahlungsbelege (Schüler)" und "Gutschriften (Lehrer)"
+  [OK] Alle Felder im Excel korrekt befüllt (Datum, Betrag, Lehrer, Schüler, ...)
+  [OK] Pro bezahlter Buchung: genau 1 RE-Beleg + 1 GA-Gutschrift vorhanden
+  [OK] Keine doppelten Belege bei mehrfachem Webhook-Aufruf (Idempotenz)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+12. ADMIN – EINSTELLUNGEN & PREISE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] Aktuelle Preiseinstellungen werden angezeigt (Min, Max, Wachstumskonstante)
+  [OK] Lehrer-Anteil (%) wird angezeigt
+  [OK] Preise sofort ändern → Änderung ist aktiv
+  [OK] Preisänderung planen (Datum in der Zukunft) → wird zu geplantem Zeitpunkt aktiv
+  [OK] Geplante Änderung wird in der UI angezeigt
+  [OK] Preis eines neuen Lehrers = Mindestpreis (keine Bewertungen)
+  [OK] Preis steigt mit Bewertungsanzahl und -qualität
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+13. ADMIN – FEHLER-LOGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ [OK] Fehler-Log-Seite lädt
+  [OK] Fehler werden mit Zeitstempel, Dateipfad und Meldung angezeigt
+  [OK]Einen Fehler absichtlich auslösen → erscheint im Log
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+14. E-MAILS – VOLLSTÄNDIGKEITSCHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [OK] Willkommens-E-Mail (neuer Schüler via Buchung) → enthält Passwort-Link
+  [OK] Passwort-Reset-E-Mail (Schüler) → Link funktioniert
+  [OK] Passwort-Setup-E-Mail (neuer Lehrer) → Link funktioniert
+  [OK] Bewerbungseingang-E-Mail (an Admin)
+  [OK] Bewerbungsbestätigung-E-Mail (an Bewerber)
+  [OK] Vertrags-E-Mail (an Bewerber nach "Vertrag senden")
+  [OK] Buchungsbestätigung-E-Mail (an Schüler)
+  [OK] Zahlungsbeleg-E-Mail RE-YYYY-NNNN (an Schüler nach Zahlung)
+      → Rechnungsnummer vorhanden
+      → Aussteller-Name + Adresse korrekt (aus COMPANY_NAME/COMPANY_ADDRESS)
+      → Leistungsdatum + Uhrzeit + Dauer korrekt
+      → Betrag korrekt
+      → Steuerhinweis vorhanden
+  [OK] Gutschrift-E-Mail GA-YYYY-NNNN (an Lehrer nach Zahlung)
+      → Gutschriftnummer vorhanden
+      → Brutto-Einnahme korrekt
+      → Provision korrekt abgezogen
+      → Auszahlungsbetrag korrekt
+      → Lehrer-UID/Steuernummer (falls hinterlegt) vorhanden
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+15. SICHERHEIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ] Security Headers vorhanden (Browser DevTools → Network → Response Headers)
+      → X-Frame-Options: SAMEORIGIN
+      → X-Content-Type-Options: nosniff
+      → Strict-Transport-Security (nur auf HTTPS)
+      → Content-Security-Policy vorhanden
+      → Referrer-Policy vorhanden
+  [ ] Admin-Seiten ohne Cookie → Redirect zu /admin/login
+  [ ] Gefälschter admin_auth-Cookie → kein Zugriff auf Admin-API
+  [ ] Schüler kann keine Buchung eines anderen Schülers stornieren (403)
+  [ ] Lehrer kann keine fremden Buchungen verwalten
+  [ ] Datei-Download (/api/admin/applications/file) nur für eingeloggte Admins
+  [ ] Stripe Webhook: Anfragen ohne gültige Signatur → abgelehnt
+  [ ] €400-Limit: Buchung über €400 → Fehlermeldung
+  [ ] E-Mail-Validierung: ungültige E-Mail in Registrierung → abgelehnt
+  [ ] E-Mail-Validierung: ungültige E-Mail in Buchung → abgelehnt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+16. STRIPE & ZAHLUNGEN (Testmodus)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Stripe Testkarten (https://stripe.com/docs/testing):
+  Erfolgreiche Zahlung:  4242 4242 4242 4242
+  Zahlung abgelehnt:     4000 0000 0000 0002
+  3D Secure erforderlich: 4000 0025 0000 3155
+
+  [OK] Zahlung mit Testkarte erfolgreich → Buchung = "paid"
+  [I guess] Zahlung abgelehnt → Buchung = "payment_failed"
+  [OK] Zahlungsmethode wird gespeichert (SetupIntent)
+  [OK] Stripe Webhook empfängt Events (lokal: stripe listen --forward-to ...)
+  [OK] payment_intent.succeeded → Belege werden erstellt
+  [OK] checkout.session.completed → Zahlungsmethode gespeichert
+  [OK] Lehrer-Auszahlung via Stripe Connect Transfer
+  [OK] Guthaben nach Buchung korrekt berechnet (Preis × Lehrer-Anteil)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+17. EDGE CASES & FEHLERBEHANDLUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ] Buchung für einen gelöschten Lehrer → saubere Fehlermeldung
+  [ ] Gleichzeitige Buchung desselben Slots durch 2 Schüler → nur 1 gelingt
+  [ ] DB nicht erreichbar → Fehlermeldung (kein Absturz)
+  [ ] SMTP nicht konfiguriert → E-Mail-Fehler wird geloggt, App läuft weiter
+  [ ] Sehr langer Name / sehr langer Text in Formularfeldern
+  [ ] Sonderzeichen in Feldern (< > & " ') → kein XSS, korrekte Darstellung
+  [OK] Seite im mobilen Browser testen (Responsive Design)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HINWEISE VOR DEM LIVE-BETRIEB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ] Alle Credentials in .env rotiert (Stripe, DB, SMTP, ADMIN_KEY)
+  [ ] COMPANY_NAME und COMPANY_ADDRESS in .env korrekt gesetzt
+  [ ] COMPANY_UID gesetzt (falls UID-Nummer vorhanden)
+  [ ] STRIPE_WEBHOOK_SECRET auf Live-Webhook-Secret aktualisiert
+  [ ] Stripe Live-Keys statt Test-Keys in .env
+  [ ] stripe listen nur lokal – in Produktion echten Webhook-Endpoint nutzen
+  [ ] Vercel Umgebungsvariablen = identisch mit .env
+  [ ] npm run build läuft ohne Fehler durch
+
+══════════════════════════════════════════════════════════════════════════════

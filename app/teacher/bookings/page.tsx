@@ -212,13 +212,13 @@ function BookingCard({
       <div className="text-sm text-gray-700 shrink-0">
         <p className="font-medium">
           {new Date(b.start).toLocaleDateString("de-AT", {
-            weekday: "short", day: "2-digit", month: "2-digit", year: "numeric",
+            weekday: "short", day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC",
           })}
         </p>
         <p className="text-gray-500">
-          {new Date(b.start).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })}
+          {new Date(b.start).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}
           {" – "}
-          {new Date(b.end).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })}
+          {new Date(b.end).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}
         </p>
       </div>
 

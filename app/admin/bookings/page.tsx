@@ -150,11 +150,11 @@ export default function AdminBookingsPage() {
                   <div className="text-xs text-gray-400">{b.student.email}</div>
                 </td>
                 <td className="px-4 py-3 text-gray-600 text-xs">
-                  <div>{new Date(b.start).toLocaleDateString("de-AT")}</div>
+                  <div>{new Date(b.start).toLocaleDateString("de-AT", { timeZone: "UTC" })}</div>
                   <div>
-                    {new Date(b.start).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(b.start).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}
                     {" – "}
-                    {new Date(b.end).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(b.end).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-right font-medium">

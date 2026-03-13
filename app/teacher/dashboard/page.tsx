@@ -212,10 +212,8 @@ export default function TeacherDashboard() {
           <p><strong>Klasse:</strong> ${escapeHtml(grade)}</p>
         </div>
 
-        <p><strong>Datum:</strong> ${new Date(booking.start).toLocaleDateString()}</p>
-        <p><strong>Zeit:</strong> ${new Date(booking.start).toLocaleTimeString()} – ${new Date(
-          booking.end
-        ).toLocaleTimeString()}</p>
+        <p><strong>Datum:</strong> ${new Date(booking.start).toLocaleDateString("de-AT", { timeZone: "UTC" })}</p>
+        <p><strong>Zeit:</strong> ${new Date(booking.start).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} – ${new Date(booking.end).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}</p>
 
         <div style="margin-top:12px; padding:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
           <p style="font-weight:700; margin-bottom:6px;">Notiz des Schülers:</p>

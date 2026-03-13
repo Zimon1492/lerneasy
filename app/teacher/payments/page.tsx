@@ -50,11 +50,11 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("de-AT", {
-    weekday: "short", day: "2-digit", month: "2-digit", year: "numeric",
+    weekday: "short", day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC",
   });
 }
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
 }
 function formatEur(cents: number) {
   return (cents / 100).toFixed(2) + " EUR";

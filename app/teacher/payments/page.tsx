@@ -14,6 +14,7 @@ type Booking = {
   note: string | null;
   stripePaymentIntentId: string | null;
   createdAt: string;
+  payoutAvailableAt: string | null;
   student: Student;
 };
 
@@ -70,9 +71,12 @@ function calcStats(bookings: Booking[], teacherShare: number) {
     ["payment_failed", "declined", "teacher_cancelled"].includes(b.status)
   ).length;
 
-  // Only lessons that are paid AND already finished count as earned
+  // Only lessons that are paid AND finished (or admin-released) count as earned
   const completedRevenueCents = bookings
-    .filter((b) => b.status === "paid" && new Date(b.end) < now)
+    .filter((b) => b.status === "paid" && (
+      new Date(b.end) < now ||
+      (!!b.payoutAvailableAt && new Date(b.payoutAvailableAt) <= now)
+    ))
     .reduce((sum, b) => sum + Math.floor(b.priceCents * teacherShare), 0);
 
   return { total, paidCount, pendingCount, failedCount, completedRevenueCents };
@@ -308,7 +312,8 @@ export default function TeacherPaymentsPage() {
             label: b.status,
             color: "text-gray-600 bg-gray-50 border-gray-200",
           };
-          const isCompleted = b.status === "paid" && new Date(b.end) < now;
+          const isReleased = !!b.payoutAvailableAt && new Date(b.payoutAvailableAt) <= now;
+          const isCompleted = b.status === "paid" && (new Date(b.end) < now || isReleased);
           const teacherShare = Math.floor(b.priceCents * settings.teacherShare);
 
           return (

@@ -38,6 +38,7 @@ export async function GET() {
       stripePaymentIntentId: true,
       stripeCustomerId: true,
       createdAt: true,
+      payoutAvailableAt: true,
       student: {
         select: {
           id: true,

@@ -96,9 +96,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           data: { status: "paid", stripePaymentIntentId: pi.id },
         });
 
-        // Beide Dokumente erstellen und versenden
+        // Exakte Stripe-Gebühr aus BalanceTransaction holen
+        let stripeFeeCents: number | null = null;
         try {
-          const zahlungsbeleg = await createZahlungsbeleg(bookingId);
+          const piExpanded = await stripe.paymentIntents.retrieve(pi.id, {
+            expand: ["latest_charge.balance_transaction"],
+          });
+          const balanceTx = (piExpanded.latest_charge as any)?.balance_transaction;
+          if (balanceTx?.fee != null) stripeFeeCents = balanceTx.fee;
+        } catch {
+          // Gebühr bleibt null — kein Fehler
+        }
+
+        // Dokumente erstellen und versenden
+        try {
+          const zahlungsbeleg = await createZahlungsbeleg(bookingId, stripeFeeCents);
           await sendZahlungsbeleg({
             to:               zahlungsbeleg.studentEmail,
             invoiceNumber:    zahlungsbeleg.invoiceNumber,

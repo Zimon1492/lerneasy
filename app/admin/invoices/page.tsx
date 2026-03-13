@@ -29,6 +29,7 @@ type Invoice = {
   taxRatePct: number;
   bookingId: string;
   stripeRefundId: string | null;
+  stripeFeeCents: number | null;
 };
 
 export default function AdminInvoicesPage() {
@@ -223,6 +224,7 @@ function ZahlungsbelgeTable({ rows }: { rows: Invoice[] }) {
           <th className="text-left px-4 py-3 font-semibold text-gray-600">Lehrer / Fach</th>
           <th className="text-left px-4 py-3 font-semibold text-gray-600">Leistungsdatum</th>
           <th className="text-right px-4 py-3 font-semibold text-gray-600">Betrag</th>
+          <th className="text-right px-4 py-3 font-semibold text-gray-600">Stripe-Gebühr</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100">
@@ -249,6 +251,11 @@ function ZahlungsbelgeTable({ rows }: { rows: Invoice[] }) {
             <td className="px-4 py-3 text-right font-semibold">
               {(inv.priceCents / 100).toFixed(2)} {inv.currency.toUpperCase()}
             </td>
+            <td className="px-4 py-3 text-right text-red-500 text-xs">
+              {inv.stripeFeeCents != null
+                ? `− ${(inv.stripeFeeCents / 100).toFixed(2)} ${inv.currency.toUpperCase()}`
+                : <span className="text-gray-300">—</span>}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -267,6 +274,7 @@ function StornobelegeTable({ rows }: { rows: Invoice[] }) {
           <th className="text-left px-4 py-3 font-semibold text-gray-600">Lehrer / Fach</th>
           <th className="text-left px-4 py-3 font-semibold text-gray-600">Stornierter Termin</th>
           <th className="text-right px-4 py-3 font-semibold text-gray-600">Rückerstattung</th>
+          <th className="text-right px-4 py-3 font-semibold text-gray-600">Stripe-Gebühr (Verlust)</th>
           <th className="text-left px-4 py-3 font-semibold text-gray-600">Stripe Refund-ID</th>
         </tr>
       </thead>
@@ -293,6 +301,11 @@ function StornobelegeTable({ rows }: { rows: Invoice[] }) {
             </td>
             <td className="px-4 py-3 text-right font-semibold text-red-600">
               − {(inv.priceCents / 100).toFixed(2)} {inv.currency.toUpperCase()}
+            </td>
+            <td className="px-4 py-3 text-right text-red-500 text-xs">
+              {inv.stripeFeeCents != null
+                ? `− ${(inv.stripeFeeCents / 100).toFixed(2)} ${inv.currency.toUpperCase()}`
+                : <span className="text-gray-300">—</span>}
             </td>
             <td className="px-4 py-3">
               {inv.stripeRefundId ? (

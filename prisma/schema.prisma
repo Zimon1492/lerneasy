@@ -256,7 +256,8 @@ model Invoice {
   teacherNetCents Int?      // Auszahlung an Lehrer
   teacherSharePct Float?    // z.B. 0.70
 
-  stripeRefundId String?   // nur bei stornobeleg
+  stripeRefundId  String?   // nur bei stornobeleg
+  stripeFeeCents  Int?      // tatsächliche Stripe-Gebühr in Cent (aus BalanceTransaction)
 
   issuedAt DateTime @default(now())
 

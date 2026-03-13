@@ -41,7 +41,7 @@ async function fetchBookingWithRelations(bookingId: string) {
 /**
  * Erstellt den Zahlungsbeleg (Schüler-Quittung) für eine bezahlte Buchung — idempotent.
  */
-export async function createZahlungsbeleg(bookingId: string) {
+export async function createZahlungsbeleg(bookingId: string, stripeFeeCents?: number | null) {
   const existing = await prisma.invoice.findFirst({ where: { bookingId, type: "zahlungsbeleg" } });
   if (existing) return existing;
 
@@ -72,6 +72,7 @@ export async function createZahlungsbeleg(bookingId: string) {
       priceCents:       booking.priceCents,
       currency:         booking.currency,
       taxRatePct:       0,
+      stripeFeeCents:   stripeFeeCents ?? null,
     },
   });
 }
@@ -85,6 +86,10 @@ export async function createStornobeleg(bookingId: string, stripeRefundId: strin
   if (existing) return existing;
 
   const booking = await fetchBookingWithRelations(bookingId);
+
+  // Stripe-Gebühr vom Zahlungsbeleg übernehmen — sie wird bei Refund NICHT zurückerstattet
+  const zahlungsbeleg = await prisma.invoice.findFirst({ where: { bookingId, type: "zahlungsbeleg" } });
+  const stripeFeeCents = zahlungsbeleg?.stripeFeeCents ?? null;
   const startDate = new Date(booking.start);
   const endDate   = new Date(booking.end);
   const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60_000);
@@ -112,6 +117,7 @@ export async function createStornobeleg(bookingId: string, stripeRefundId: strin
       currency:         booking.currency,
       taxRatePct:       0,
       stripeRefundId,
+      stripeFeeCents,
     },
   });
 }

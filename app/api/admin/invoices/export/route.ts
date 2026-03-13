@@ -28,9 +28,11 @@ export async function GET(req: Request) {
     "Uhrzeit von":       inv.serviceStartTime,
     "Uhrzeit bis":       inv.serviceEndTime,
     "Dauer (Min)":       inv.durationMinutes,
-    "Betrag (EUR)":      (inv.priceCents / 100).toFixed(2),
-    "USt. %":            inv.taxRatePct,
-    "Buchungs-ID":       inv.bookingId,
+    "Betrag (EUR)":           (inv.priceCents / 100).toFixed(2),
+    "Stripe-Gebühr (EUR)":   inv.stripeFeeCents != null ? (inv.stripeFeeCents / 100).toFixed(2) : "",
+    "Netto-Einnahme (EUR)":  inv.stripeFeeCents != null ? ((inv.priceCents - inv.stripeFeeCents) / 100).toFixed(2) : "",
+    "USt. %":                inv.taxRatePct,
+    "Buchungs-ID":           inv.bookingId,
   }));
 
   // ─── Sheet 2: Gutschriften (Provisionsabrechnungen für Lehrer) ────────────
@@ -66,9 +68,10 @@ export async function GET(req: Request) {
     "Stornierter Termin": new Date(inv.serviceDate).toLocaleDateString("de-AT"),
     "Uhrzeit von":        inv.serviceStartTime,
     "Uhrzeit bis":        inv.serviceEndTime,
-    "Rückerstattung (EUR)": (inv.priceCents / 100).toFixed(2),
-    "Stripe Refund-ID":   inv.stripeRefundId ?? "",
-    "Buchungs-ID":        inv.bookingId,
+    "Rückerstattung (EUR)":          (inv.priceCents / 100).toFixed(2),
+    "Stripe-Gebühr (Verlust, EUR)":  inv.stripeFeeCents != null ? (inv.stripeFeeCents / 100).toFixed(2) : "",
+    "Stripe Refund-ID":              inv.stripeRefundId ?? "",
+    "Buchungs-ID":                   inv.bookingId,
   }));
 
   const wsZ = XLSX.utils.json_to_sheet(rowsZ.length > 0 ? rowsZ : [{}]);
@@ -78,7 +81,7 @@ export async function GET(req: Request) {
   wsZ["!cols"] = [
     { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 28 }, { wch: 22 },
     { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
-    { wch: 14 }, { wch: 8  }, { wch: 38 },
+    { wch: 14 }, { wch: 20 }, { wch: 20 }, { wch: 8  }, { wch: 38 },
   ];
   wsG["!cols"] = [
     { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 28 }, { wch: 28 },
@@ -89,7 +92,7 @@ export async function GET(req: Request) {
   wsS["!cols"] = [
     { wch: 18 }, { wch: 18 }, { wch: 22 }, { wch: 28 }, { wch: 22 },
     { wch: 28 }, { wch: 16 }, { wch: 18 }, { wch: 12 }, { wch: 12 },
-    { wch: 22 }, { wch: 32 }, { wch: 38 },
+    { wch: 22 }, { wch: 26 }, { wch: 32 }, { wch: 38 },
   ];
 
   const wb = XLSX.utils.book_new();

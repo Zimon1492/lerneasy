@@ -35,8 +35,20 @@ export async function GET() {
     const now = new Date();
     const defaultCutoff = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-    // Completed lessons: paid + (end + 14 Tage) vergangen ODER Admin hat payoutAvailableAt gesetzt
-    const completedBookings = await prisma.booking.findMany({
+    const { teacherShare } = await getPlatformSettings();
+
+    // Alle abgeschlossenen Stunden (für Einnahmen-Anzeige)
+    const allCompletedBookings = await prisma.booking.findMany({
+      where: { teacherId: teacher.id, status: "paid", end: { lt: now } },
+      select: { priceCents: true },
+    });
+    const earnedCents = allCompletedBookings.reduce(
+      (sum, b) => sum + Math.floor(b.priceCents * teacherShare),
+      0
+    );
+
+    // Nur freigegebene Buchungen (für Verfügbar-Anzeige)
+    const releasedBookings = await prisma.booking.findMany({
       where: {
         teacherId: teacher.id,
         status: "paid",
@@ -48,15 +60,13 @@ export async function GET() {
       },
       select: { priceCents: true },
     });
-
-    const { teacherShare } = await getPlatformSettings();
-    const earnedCents = completedBookings.reduce(
+    const releasedCents = releasedBookings.reduce(
       (sum, b) => sum + Math.floor(b.priceCents * teacherShare),
       0
     );
 
     const paidOutCents = teacher.payouts.reduce((sum, p) => sum + p.amountCents, 0);
-    const availableCents = Math.max(0, earnedCents - paidOutCents);
+    const availableCents = Math.max(0, releasedCents - paidOutCents);
 
     return NextResponse.json({
       onboarded: teacher.stripeConnectOnboarded,

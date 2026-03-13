@@ -100,8 +100,9 @@ export default function AuthModal({ onClose }: Props) {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Registrierung fehlgeschlagen");
 
-        // E-Mail-Bestätigung erforderlich — kein Auto-Login
-        setMsg("✅ Konto erstellt! Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt.");
+        // Weiterleitung zur Bestätigungsseite
+        onClose();
+        router.push("/verify-email");
         return;
       } else {
         const result = await signIn("student-credentials", {
@@ -116,10 +117,11 @@ export default function AuthModal({ onClose }: Props) {
           return;
         }
         if (result?.error === "EMAIL_NOT_VERIFIED") {
-          setMsg("❌ Bitte bestätige zuerst deine E-Mail-Adresse. Den Link findest du in deinem Postfach.");
-        } else {
-          setMsg("E-Mail oder Passwort ist falsch");
+          onClose();
+          router.push("/verify-email");
+          return;
         }
+        setMsg("E-Mail oder Passwort ist falsch");
       }
     } catch (err: any) {
       setMsg(err?.message ?? "Unbekannter Fehler");

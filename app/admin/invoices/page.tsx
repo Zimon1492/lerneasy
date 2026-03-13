@@ -332,6 +332,8 @@ function GutschriftenTable({ rows }: { rows: Invoice[] }) {
           <th className="text-left px-4 py-3 font-semibold text-gray-600">Fach / Datum</th>
           <th className="text-right px-4 py-3 font-semibold text-gray-600">Brutto</th>
           <th className="text-right px-4 py-3 font-semibold text-gray-600">Provision</th>
+          <th className="text-right px-4 py-3 font-semibold text-gray-600">Stripe-Gebühr</th>
+          <th className="text-right px-4 py-3 font-semibold text-gray-600">Netto-Provision</th>
           <th className="text-right px-4 py-3 font-semibold text-gray-600 text-green-700">Auszahlung</th>
         </tr>
       </thead>
@@ -367,6 +369,16 @@ function GutschriftenTable({ rows }: { rows: Invoice[] }) {
                   {Math.round((1 - inv.teacherSharePct) * 100)}%
                 </div>
               )}
+            </td>
+            <td className="px-4 py-3 text-right text-xs text-red-500">
+              {inv.stripeFeeCents != null
+                ? `− ${(inv.stripeFeeCents / 100).toFixed(2)} ${inv.currency.toUpperCase()}`
+                : <span className="text-gray-300">—</span>}
+            </td>
+            <td className="px-4 py-3 text-right text-xs font-medium text-blue-700">
+              {inv.stripeFeeCents != null
+                ? `${(((inv.commissionCents ?? 0) - inv.stripeFeeCents) / 100).toFixed(2)} ${inv.currency.toUpperCase()}`
+                : <span className="text-gray-300">—</span>}
             </td>
             <td className="px-4 py-3 text-right font-semibold text-green-700">
               {((inv.teacherNetCents ?? 0) / 100).toFixed(2)} {inv.currency.toUpperCase()}

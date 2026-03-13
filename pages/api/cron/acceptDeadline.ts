@@ -115,6 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: {
         status: "paid",
         start: { gt: now, lte: in24h },
+        reminderSentAt: null,
       },
       include: {
         student: { select: { email: true, name: true } },
@@ -124,26 +125,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     for (const booking of upcoming) {
       const startStr = new Date(booking.start).toLocaleString("de-AT");
+      const sends: Promise<any>[] = [];
+
       if (booking.student?.email) {
-        sendMail(
-          booking.student.email,
-          "Erinnerung: Deine Nachhilfestunde morgen",
-          `<h2>Erinnerung an deinen Termin</h2>
-           <p>Hallo ${escapeHtml(booking.student.name || "")},</p>
-           <p>Deine Nachhilfestunde bei <b>${escapeHtml(booking.teacher?.name || "deinem Lehrer")}</b> findet morgen am <b>${escapeHtml(startStr)}</b> statt.</p>
-           <p>Viele Grüße,<br/>dein LernApp-Team</p>`
-        ).catch(() => {});
+        sends.push(
+          sendMail(
+            booking.student.email,
+            "Erinnerung: Deine Nachhilfestunde morgen",
+            `<h2>Erinnerung an deinen Termin</h2>
+             <p>Hallo ${escapeHtml(booking.student.name || "")},</p>
+             <p>Deine Nachhilfestunde bei <b>${escapeHtml(booking.teacher?.name || "deinem Lehrer")}</b> findet morgen am <b>${escapeHtml(startStr)}</b> statt.</p>
+             <p>Viele Grüße,<br/>dein LernApp-Team</p>`
+          ).catch(() => {})
+        );
       }
       if (booking.teacher?.email) {
-        sendMail(
-          booking.teacher.email,
-          "Erinnerung: Nachhilfestunde morgen",
-          `<h2>Erinnerung an deinen Termin</h2>
-           <p>Hallo ${escapeHtml(booking.teacher.name || "")},</p>
-           <p>Deine Nachhilfestunde mit <b>${escapeHtml(booking.student?.name || "einem Schüler")}</b> findet morgen am <b>${escapeHtml(startStr)}</b> statt.</p>
-           <p>Viele Grüße,<br/>dein LernApp-Team</p>`
-        ).catch(() => {});
+        sends.push(
+          sendMail(
+            booking.teacher.email,
+            "Erinnerung: Nachhilfestunde morgen",
+            `<h2>Erinnerung an deinen Termin</h2>
+             <p>Hallo ${escapeHtml(booking.teacher.name || "")},</p>
+             <p>Deine Nachhilfestunde mit <b>${escapeHtml(booking.student?.name || "einem Schüler")}</b> findet morgen am <b>${escapeHtml(startStr)}</b> statt.</p>
+             <p>Viele Grüße,<br/>dein LernApp-Team</p>`
+          ).catch(() => {})
+        );
       }
+
+      await Promise.all(sends);
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: { reminderSentAt: now },
+      });
     }
 
     // ── 4. Delete error logs older than 90 days (DSGVO promise) ──

@@ -20,6 +20,7 @@ type Booking = {
   end: string;
   status: string;
   note: string | null;
+  priceCents: number;
   student: Student | null;
 };
 
@@ -31,6 +32,8 @@ const STATUS_LABEL: Record<string, string> = {
   declined: "Abgelehnt",
   payment_failed: "Zahlung fehlgeschlagen",
   canceled_by_system: "Storniert",
+  teacher_cancelled: "Von dir storniert",
+  student_cancelled: "Vom Schüler storniert",
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -39,6 +42,8 @@ const STATUS_COLOR: Record<string, string> = {
   declined: "bg-red-100 text-red-800",
   payment_failed: "bg-red-100 text-red-800",
   canceled_by_system: "bg-gray-100 text-gray-500",
+  teacher_cancelled: "bg-orange-100 text-orange-700",
+  student_cancelled: "bg-gray-100 text-gray-500",
   pending: "bg-gray-100 text-gray-600",
   checkout_started: "bg-yellow-100 text-yellow-800",
 };
@@ -94,6 +99,21 @@ export default function TeacherBookingsPage() {
     load();
   }
 
+  async function cancel(bookingId: string, priceCents: number) {
+    const confirmed = window.confirm(
+      `Buchung wirklich stornieren? Der Schüler erhält ${(priceCents / 100).toFixed(2)} € zurück.`
+    );
+    if (!confirmed) return;
+    setActionLoading(bookingId);
+    const res = await fetch(`/api/teacher/bookings/${bookingId}/cancel`, { method: "POST" });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      alert("Fehler: " + (d?.error || res.status));
+    }
+    setActionLoading(null);
+    load();
+  }
+
   const pending = bookings.filter((b) => b.status === "payment_method_saved");
   const rest = bookings.filter((b) => b.status !== "payment_method_saved");
 
@@ -123,6 +143,7 @@ export default function TeacherBookingsPage() {
                 actionLoading={actionLoading}
                 onAccept={accept}
                 onDecline={decline}
+                onCancel={cancel}
               />
             ))}
           </div>
@@ -141,6 +162,7 @@ export default function TeacherBookingsPage() {
                 actionLoading={actionLoading}
                 onAccept={accept}
                 onDecline={decline}
+                onCancel={cancel}
               />
             ))}
           </div>
@@ -150,19 +172,28 @@ export default function TeacherBookingsPage() {
   );
 }
 
+function canCancel(booking: Booking): boolean {
+  if (booking.status !== "paid") return false;
+  const oneDayBeforeStart = new Date(booking.start).getTime() - 24 * 60 * 60 * 1000;
+  return Date.now() < oneDayBeforeStart;
+}
+
 function BookingCard({
   booking: b,
   actionLoading,
   onAccept,
   onDecline,
+  onCancel,
 }: {
   booking: Booking;
   actionLoading: string | null;
   onAccept: (id: string) => void;
   onDecline: (id: string) => void;
+  onCancel: (id: string, priceCents: number) => void;
 }) {
   const isPending = b.status === "payment_method_saved";
   const isActing = actionLoading === b.id;
+  const cancellable = canCancel(b);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -218,6 +249,16 @@ function BookingCard({
             {isActing ? "…" : "Ablehnen"}
           </button>
         </div>
+      )}
+
+      {cancellable && (
+        <button
+          disabled={isActing}
+          onClick={() => onCancel(b.id, b.priceCents)}
+          className="shrink-0 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium disabled:opacity-50"
+        >
+          {isActing ? "…" : "Stornieren"}
+        </button>
       )}
     </div>
   );

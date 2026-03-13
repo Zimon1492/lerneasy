@@ -196,6 +196,7 @@ model Booking {
   stripeSetupIntentId   String?
   stripePaymentIntentId String?
   stripeRefundId        String?
+  reminderSentAt        DateTime?
 
   student User    @relation("studentBookings", fields: [studentId], references: [id])
   teacher Teacher @relation("teacherBookings", fields: [teacherId], references: [id], onDelete: Cascade)

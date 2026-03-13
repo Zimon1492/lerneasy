@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     const bookings = await prisma.booking.findMany({
       where: {
         teacherId: teacher.id,
-        status: { in: ["payment_method_saved", "paid", "declined"] },
+        status: { in: ["payment_method_saved", "paid", "declined", "teacher_cancelled", "student_cancelled"] },
       },
       orderBy: { start: "asc" },
       select: {
@@ -38,6 +38,7 @@ export async function GET(req: Request) {
         end: true,
         status: true,
         note: true,
+        priceCents: true,
 
         // ✅ Schülerdaten vollständig mitsenden
         student: {

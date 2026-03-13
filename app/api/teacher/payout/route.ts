@@ -33,10 +33,19 @@ export async function GET() {
     if (!teacher) return NextResponse.json({ error: "Lehrer nicht gefunden." }, { status: 404 });
 
     const now = new Date();
+    const defaultCutoff = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-    // Completed lessons: paid + end time already passed
+    // Completed lessons: paid + (end + 14 Tage) vergangen ODER Admin hat payoutAvailableAt gesetzt
     const completedBookings = await prisma.booking.findMany({
-      where: { teacherId: teacher.id, status: "paid", end: { lt: now } },
+      where: {
+        teacherId: teacher.id,
+        status: "paid",
+        end: { lt: now },
+        OR: [
+          { payoutAvailableAt: { lte: now } },
+          { payoutAvailableAt: null, end: { lt: defaultCutoff } },
+        ],
+      },
       select: { priceCents: true },
     });
 
@@ -90,8 +99,19 @@ export async function POST() {
     }
 
     const now = new Date();
+    const defaultCutoff = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const releasedFilter = {
+      teacherId: teacher.id,
+      status: "paid",
+      end: { lt: now },
+      OR: [
+        { payoutAvailableAt: { lte: now } },
+        { payoutAvailableAt: null, end: { lt: defaultCutoff } },
+      ],
+    };
+
     const completedBookings = await prisma.booking.findMany({
-      where: { teacherId: teacher.id, status: "paid", end: { lt: now } },
+      where: releasedFilter,
       select: { priceCents: true },
     });
 
@@ -108,7 +128,7 @@ export async function POST() {
     }
 
     const completedBookingsWithId = await prisma.booking.findMany({
-      where: { teacherId: teacher.id, status: "paid", end: { lt: now } },
+      where: releasedFilter,
       select: {
         id: true,
         priceCents: true,

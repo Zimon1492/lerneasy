@@ -20,6 +20,7 @@ export async function GET(req: Request) {
       status: true,
       note: true,
       createdAt: true,
+      payoutAvailableAt: true,
       teacher: { select: { id: true, name: true, email: true } },
       student: { select: { id: true, name: true, email: true } },
     },

@@ -11,6 +11,7 @@ type Booking = {
   status: string;
   note: string | null;
   createdAt: string;
+  payoutAvailableAt: string | null;
   teacher: { id: string; name: string; email: string };
   student: { id: string; name: string | null; email: string };
 };
@@ -35,6 +36,7 @@ export default function AdminBookingsPage() {
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [releasingId, setReleasingId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -51,6 +53,18 @@ export default function AdminBookingsPage() {
     setDeletingId(id);
     await fetch(`/api/admin/bookings/${id}`, { method: "DELETE" });
     setDeletingId(null);
+    load();
+  }
+
+  async function handleReleasePayout(id: string) {
+    if (!confirm("Auszahlung für diese Buchung sofort freigeben?")) return;
+    setReleasingId(id);
+    await fetch(`/api/admin/bookings/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ releasePayout: true }),
+    });
+    setReleasingId(null);
     load();
   }
 
@@ -158,14 +172,31 @@ export default function AdminBookingsPage() {
                     ))}
                   </select>
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => handleDelete(b.id)}
-                    disabled={deletingId === b.id}
-                    className="text-xs text-red-600 hover:text-red-800 disabled:opacity-40"
-                  >
-                    {deletingId === b.id ? "Lösche..." : "Löschen"}
-                  </button>
+                <td className="px-4 py-3 text-right space-y-1">
+                  {b.status === "paid" && (
+                    <div>
+                      {b.payoutAvailableAt ? (
+                        <span className="text-xs text-green-600 font-medium">✅ Freigegeben</span>
+                      ) : (
+                        <button
+                          onClick={() => handleReleasePayout(b.id)}
+                          disabled={releasingId === b.id}
+                          className="text-xs text-orange-600 hover:text-orange-800 disabled:opacity-40 font-medium"
+                        >
+                          {releasingId === b.id ? "..." : "💸 Auszahlung freigeben"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <button
+                      onClick={() => handleDelete(b.id)}
+                      disabled={deletingId === b.id}
+                      className="text-xs text-red-600 hover:text-red-800 disabled:opacity-40"
+                    >
+                      {deletingId === b.id ? "Lösche..." : "Löschen"}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

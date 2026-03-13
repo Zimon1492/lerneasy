@@ -210,6 +210,7 @@ model Booking {
   stripePaymentIntentId String?
   stripeRefundId        String?
   reminderSentAt        DateTime?
+  payoutAvailableAt     DateTime?  // null = Standard (end + 14 Tage), gesetzt = Admin hat freigegeben
 
   student User    @relation("studentBookings", fields: [studentId], references: [id])
   teacher Teacher @relation("teacherBookings", fields: [teacherId], references: [id], onDelete: Cascade)

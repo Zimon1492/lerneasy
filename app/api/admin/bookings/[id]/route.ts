@@ -23,8 +23,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const { id } = await params;
-  const { status } = await req.json();
+  const body = await req.json();
 
+  if (body.releasePayout) {
+    // Admin gibt Auszahlung sofort frei (Testzwecke)
+    const updated = await prisma.booking.update({
+      where: { id },
+      data: { payoutAvailableAt: new Date() },
+      select: { id: true, payoutAvailableAt: true },
+    });
+    return NextResponse.json({ ok: true, booking: updated });
+  }
+
+  const { status } = body;
   if (!status) return NextResponse.json({ error: "status fehlt." }, { status: 400 });
 
   const updated = await prisma.booking.update({

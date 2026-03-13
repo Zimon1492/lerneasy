@@ -144,6 +144,10 @@ export async function POST() {
       return NextResponse.json({ error: "Kein Guthaben verfügbar." }, { status: 400 });
     }
 
+    if (availableCents < 100) {
+      return NextResponse.json({ error: `Mindestbetrag für eine Auszahlung ist 1,00 EUR. Verfügbar: ${(availableCents / 100).toFixed(2)} EUR.` }, { status: 400 });
+    }
+
     const completedBookingsWithId = await prisma.booking.findMany({
       where: releasedFilter,
       select: {

@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
-import { cookies } from "next/headers";
+import { isAdminAuthed } from "@/app/api/admin/_auth";
 
 export const runtime = "nodejs";
 
-async function isAdmin() {
-  const c = await cookies();
-  return c.get("admin_auth")?.value === "1";
-}
-
-export async function GET() {
-  if (!(await isAdmin())) {
+export async function GET(req: Request) {
+  if (!isAdminAuthed(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -23,7 +18,7 @@ export async function GET() {
 }
 
 export async function DELETE(req: Request) {
-  if (!(await isAdmin())) {
+  if (!isAdminAuthed(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

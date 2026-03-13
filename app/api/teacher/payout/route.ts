@@ -201,8 +201,9 @@ export async function POST() {
     ).catch(() => {});
 
     return NextResponse.json({ ok: true, amountCents: availableCents, transferId: transfer.id });
-  } catch (err) {
+  } catch (err: any) {
     logError("api/teacher/payout POST", err).catch(() => {});
-    return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
+    const msg = err?.message ?? "Serverfehler";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

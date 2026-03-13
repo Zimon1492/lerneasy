@@ -5,9 +5,9 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function VerifyEmailPage() {
-  const params = useSearchParams();
-  const success = params.get("success");
-  const error   = params.get("error");
+  const params  = useSearchParams();
+  const success = params?.get("success");
+  const error   = params?.get("error");
 
   const [resendEmail, setResendEmail] = useState("");
   const [resendState, setResendState] = useState<"idle" | "loading" | "done" | "error">("idle");

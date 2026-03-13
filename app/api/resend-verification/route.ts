@@ -30,6 +30,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
+    // Cooldown: nicht neu senden wenn letztes Token < 15 Minuten alt ist
+    const existing = await prisma.emailVerificationToken.findFirst({
+      where: { userId: user.id },
+      select: { expiresAt: true },
+    });
+    if (existing) {
+      const createdAt = new Date(existing.expiresAt.getTime() - 24 * 60 * 60 * 1000);
+      const cooldownUntil = new Date(createdAt.getTime() + 15 * 60 * 1000);
+      if (new Date() < cooldownUntil) {
+        // Gleiche neutrale Antwort — kein Hinweis auf Cooldown (verhindert Enumeration)
+        return NextResponse.json({ ok: true });
+      }
+    }
+
     // Alte Tokens löschen + neuen erstellen
     await prisma.emailVerificationToken.deleteMany({ where: { userId: user.id } });
     const token = crypto.randomBytes(32).toString("hex");

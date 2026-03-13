@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/acceptDeadline",
       "schedule": "0 20 * * *"
+    },
+    {
+      "path": "/api/cron/cleanupUnverified",
+      "schedule": "0 3 * * *"
     }
   ]
 }

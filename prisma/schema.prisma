@@ -195,6 +195,7 @@ model Booking {
   stripePaymentMethodId String?
   stripeSetupIntentId   String?
   stripePaymentIntentId String?
+  stripeRefundId        String?
 
   student User    @relation("studentBookings", fields: [studentId], references: [id])
   teacher Teacher @relation("teacherBookings", fields: [teacherId], references: [id], onDelete: Cascade)
@@ -254,6 +255,8 @@ model Invoice {
   commissionCents Int?      // Plattform-Provision
   teacherNetCents Int?      // Auszahlung an Lehrer
   teacherSharePct Float?    // z.B. 0.70
+
+  stripeRefundId String?   // nur bei stornobeleg
 
   issuedAt DateTime @default(now())
 

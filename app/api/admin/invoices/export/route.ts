@@ -14,6 +14,7 @@ export async function GET(req: Request) {
 
   const zahlungsbelege = invoices.filter((i) => i.type === "zahlungsbeleg");
   const gutschriften   = invoices.filter((i) => i.type === "gutschrift");
+  const stornobelege   = invoices.filter((i) => i.type === "stornobeleg");
 
   // ─── Sheet 1: Zahlungsbelege (für Schüler) ────────────────────────────────
   const rowsZ = zahlungsbelege.map((inv) => ({
@@ -53,8 +54,26 @@ export async function GET(req: Request) {
     "Buchungs-ID":          inv.bookingId,
   }));
 
+  // ─── Sheet 3: Stornobelege (stornierte & rückerstattete Buchungen) ───────────
+  const rowsS = stornobelege.map((inv) => ({
+    "Stornobeleg-Nr.":    inv.invoiceNumber,
+    "Ausstellungsdatum":  new Date(inv.issuedAt).toLocaleDateString("de-AT"),
+    "Schüler Name":       inv.studentName,
+    "Schüler E-Mail":     inv.studentEmail,
+    "Lehrer Name":        inv.teacherName,
+    "Lehrer E-Mail":      inv.teacherEmail,
+    "Fach":               inv.subject ?? "",
+    "Stornierter Termin": new Date(inv.serviceDate).toLocaleDateString("de-AT"),
+    "Uhrzeit von":        inv.serviceStartTime,
+    "Uhrzeit bis":        inv.serviceEndTime,
+    "Rückerstattung (EUR)": (inv.priceCents / 100).toFixed(2),
+    "Stripe Refund-ID":   inv.stripeRefundId ?? "",
+    "Buchungs-ID":        inv.bookingId,
+  }));
+
   const wsZ = XLSX.utils.json_to_sheet(rowsZ.length > 0 ? rowsZ : [{}]);
   const wsG = XLSX.utils.json_to_sheet(rowsG.length > 0 ? rowsG : [{}]);
+  const wsS = XLSX.utils.json_to_sheet(rowsS.length > 0 ? rowsS : [{}]);
 
   wsZ["!cols"] = [
     { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 28 }, { wch: 22 },
@@ -67,10 +86,16 @@ export async function GET(req: Request) {
     { wch: 12 }, { wch: 20 }, { wch: 16 }, { wch: 22 }, { wch: 14 },
     { wch: 8  }, { wch: 38 },
   ];
+  wsS["!cols"] = [
+    { wch: 18 }, { wch: 18 }, { wch: 22 }, { wch: 28 }, { wch: 22 },
+    { wch: 28 }, { wch: 16 }, { wch: 18 }, { wch: 12 }, { wch: 12 },
+    { wch: 22 }, { wch: 32 }, { wch: 38 },
+  ];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, wsZ, "Zahlungsbelege (Schüler)");
   XLSX.utils.book_append_sheet(wb, wsG, "Gutschriften (Lehrer)");
+  XLSX.utils.book_append_sheet(wb, wsS, "Stornobelege");
 
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
   const dateStr = new Date().toISOString().slice(0, 10);

@@ -16,7 +16,7 @@ function getIssuerData() {
   };
 }
 
-async function nextInvoiceNumber(prefix: "RE" | "GA"): Promise<string> {
+async function nextInvoiceNumber(prefix: "RE" | "GA" | "ST"): Promise<string> {
   const year  = new Date().getFullYear();
   const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: `${prefix}-${year}` } } });
   const seq   = String(count + 1).padStart(4, "0");
@@ -72,6 +72,46 @@ export async function createZahlungsbeleg(bookingId: string) {
       priceCents:       booking.priceCents,
       currency:         booking.currency,
       taxRatePct:       0,
+    },
+  });
+}
+
+/**
+ * Erstellt einen Stornobeleg wenn ein Lehrer eine bezahlte Buchung storniert — idempotent.
+ * Dokumentiert die Rückerstattung inkl. Stripe-Refund-ID für die Buchhaltung.
+ */
+export async function createStornobeleg(bookingId: string, stripeRefundId: string | null) {
+  const existing = await prisma.invoice.findFirst({ where: { bookingId, type: "stornobeleg" } });
+  if (existing) return existing;
+
+  const booking = await fetchBookingWithRelations(bookingId);
+  const startDate = new Date(booking.start);
+  const endDate   = new Date(booking.end);
+  const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60_000);
+  const subject = booking.availability?.offer?.subject?.name ?? booking.teacher.subject ?? null;
+  const issuer  = getIssuerData();
+
+  return prisma.invoice.create({
+    data: {
+      invoiceNumber:    await nextInvoiceNumber("ST"),
+      bookingId:        booking.id,
+      type:             "stornobeleg",
+      ...issuer,
+      studentName:      booking.student.name ?? booking.student.email,
+      studentEmail:     booking.student.email,
+      teacherName:      booking.teacher.name,
+      teacherEmail:     booking.teacher.email,
+      teacherAddress:   booking.teacher.address ?? null,
+      teacherTaxNumber: booking.teacher.taxNumber ?? null,
+      subject,
+      serviceDate:      startDate,
+      serviceStartTime: toTimeString(startDate),
+      serviceEndTime:   toTimeString(endDate),
+      durationMinutes,
+      priceCents:       booking.priceCents,
+      currency:         booking.currency,
+      taxRatePct:       0,
+      stripeRefundId,
     },
   });
 }

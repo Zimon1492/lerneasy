@@ -5,6 +5,7 @@ import prisma from "@/app/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import nodemailer from "nodemailer";
 import { logError } from "@/app/lib/logError";
+import { createStornobeleg } from "@/app/lib/invoiceUtils";
 
 export const runtime = "nodejs";
 
@@ -50,8 +51,11 @@ export async function POST(
 
     await prisma.booking.update({
       where: { id: bookingId },
-      data: { status: "teacher_cancelled" },
+      data: { status: "teacher_cancelled", stripeRefundId: refundId },
     });
+
+    // Stornobeleg für die Buchhaltung erstellen
+    await createStornobeleg(bookingId, refundId).catch(() => {});
 
     // Email student about cancellation and refund
     if (booking.student?.email) {

@@ -28,13 +28,14 @@ type Invoice = {
   currency: string;
   taxRatePct: number;
   bookingId: string;
+  stripeRefundId: string | null;
 };
 
 export default function AdminInvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState("");
-  const [tab, setTab]           = useState<"zahlungsbeleg" | "gutschrift">("zahlungsbeleg");
+  const [tab, setTab]           = useState<"zahlungsbeleg" | "gutschrift" | "stornobeleg">("zahlungsbeleg");
   const [exporting, setExporting] = useState(false);
 
   async function load() {
@@ -79,6 +80,7 @@ export default function AdminInvoicesPage() {
 
   const zahlungsbelege = invoices.filter((i) => i.type === "zahlungsbeleg");
   const gutschriften   = invoices.filter((i) => i.type === "gutschrift");
+  const stornobelege   = invoices.filter((i) => i.type === "stornobeleg");
 
   return (
     <div className="p-8">
@@ -87,7 +89,7 @@ export default function AdminInvoicesPage() {
         <div>
           <h1 className="text-2xl font-bold">Belege & Rechnungen</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {zahlungsbelege.length} Zahlungsbelege · {gutschriften.length} Gutschriften
+            {zahlungsbelege.length} Zahlungsbelege · {gutschriften.length} Gutschriften · {stornobelege.length} Stornobelege
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -134,6 +136,19 @@ export default function AdminInvoicesPage() {
           Gutschriften (Lehrer)
           <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">
             {gutschriften.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setTab("stornobeleg")}
+          className={`px-5 py-2 rounded-lg text-sm font-medium transition ${
+            tab === "stornobeleg"
+              ? "bg-white shadow text-gray-900"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Stornobelege
+          <span className="ml-2 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">
+            {stornobelege.length}
           </span>
         </button>
       </div>
@@ -184,8 +199,10 @@ export default function AdminInvoicesPage() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {tab === "zahlungsbeleg" ? (
           <ZahlungsbelgeTable rows={filtered} />
-        ) : (
+        ) : tab === "gutschrift" ? (
           <GutschriftenTable rows={filtered} />
+        ) : (
+          <StornobelegeTable rows={filtered} />
         )}
         {!loading && filtered.length === 0 && (
           <p className="text-center text-gray-400 py-10 text-sm">Keine Belege gefunden.</p>
@@ -231,6 +248,58 @@ function ZahlungsbelgeTable({ rows }: { rows: Invoice[] }) {
             </td>
             <td className="px-4 py-3 text-right font-semibold">
               {(inv.priceCents / 100).toFixed(2)} {inv.currency.toUpperCase()}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function StornobelegeTable({ rows }: { rows: Invoice[] }) {
+  return (
+    <table className="w-full text-sm">
+      <thead className="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th className="text-left px-4 py-3 font-semibold text-gray-600">Stornobeleg-Nr.</th>
+          <th className="text-left px-4 py-3 font-semibold text-gray-600">Ausgestellt</th>
+          <th className="text-left px-4 py-3 font-semibold text-gray-600">Schüler</th>
+          <th className="text-left px-4 py-3 font-semibold text-gray-600">Lehrer / Fach</th>
+          <th className="text-left px-4 py-3 font-semibold text-gray-600">Stornierter Termin</th>
+          <th className="text-right px-4 py-3 font-semibold text-gray-600">Rückerstattung</th>
+          <th className="text-left px-4 py-3 font-semibold text-gray-600">Stripe Refund-ID</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-100">
+        {rows.map((inv) => (
+          <tr key={inv.id} className="hover:bg-gray-50">
+            <td className="px-4 py-3">
+              <span className="font-mono text-xs font-semibold text-red-700">{inv.invoiceNumber}</span>
+            </td>
+            <td className="px-4 py-3 text-xs text-gray-500">
+              {new Date(inv.issuedAt).toLocaleDateString("de-AT")}
+            </td>
+            <td className="px-4 py-3">
+              <div className="font-medium">{inv.studentName}</div>
+              <div className="text-xs text-gray-400">{inv.studentEmail}</div>
+            </td>
+            <td className="px-4 py-3">
+              <div className="font-medium">{inv.teacherName}</div>
+              <div className="text-xs text-gray-400">{inv.subject ?? "—"}</div>
+            </td>
+            <td className="px-4 py-3 text-xs text-gray-600">
+              <div>{new Date(inv.serviceDate).toLocaleDateString("de-AT")}</div>
+              <div className="text-gray-400">{inv.serviceStartTime} – {inv.serviceEndTime}</div>
+            </td>
+            <td className="px-4 py-3 text-right font-semibold text-red-600">
+              − {(inv.priceCents / 100).toFixed(2)} {inv.currency.toUpperCase()}
+            </td>
+            <td className="px-4 py-3">
+              {inv.stripeRefundId ? (
+                <span className="font-mono text-xs text-gray-500">{inv.stripeRefundId}</span>
+              ) : (
+                <span className="text-xs text-gray-300">—</span>
+              )}
             </td>
           </tr>
         ))}

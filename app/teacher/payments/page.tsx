@@ -64,20 +64,24 @@ function calcStats(bookings: Booking[], teacherShare: number) {
   const now = new Date();
   const total = bookings.length;
   const paidCount = bookings.filter((b) => b.status === "paid").length;
+  // "Ausstehend" = Buchungen die noch nicht paid sind und nicht abgebrochen wurden
   const pendingCount = bookings.filter((b) =>
-    ["pending", "checkout_started", "payment_method_saved", "confirmed", "accepted"].includes(b.status)
+    ["payment_method_saved", "confirmed", "accepted"].includes(b.status)
   ).length;
   const failedCount = bookings.filter((b) =>
     ["payment_failed", "declined", "teacher_cancelled"].includes(b.status)
   ).length;
 
-  // Only lessons that are paid AND finished (or admin-released) count as earned
+  // Paid + (Stunde vorbei ODER Admin freigegeben)
   const completedRevenueCents = bookings
     .filter((b) => b.status === "paid" && (
       new Date(b.end) < now ||
       (!!b.payoutAvailableAt && new Date(b.payoutAvailableAt) <= now)
     ))
     .reduce((sum, b) => sum + Math.floor(b.priceCents * teacherShare), 0);
+
+  // "Ausstehend" = echte offene Buchungen (nicht paid, nicht abgebrochen)
+  // Ausgenommen paid-Buchungen mit zukünftiger Stunde (die sind bestätigt, nicht ausstehend)
 
   return { total, paidCount, pendingCount, failedCount, completedRevenueCents };
 }

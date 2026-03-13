@@ -38,8 +38,16 @@ export async function GET() {
     const { teacherShare } = await getPlatformSettings();
 
     // Alle abgeschlossenen Stunden (für Einnahmen-Anzeige)
+    // Zählt: Stunde vorbei ODER Admin hat Auszahlung freigegeben
     const allCompletedBookings = await prisma.booking.findMany({
-      where: { teacherId: teacher.id, status: "paid", end: { lt: now } },
+      where: {
+        teacherId: teacher.id,
+        status: "paid",
+        OR: [
+          { end: { lt: now } },
+          { payoutAvailableAt: { lte: now } },
+        ],
+      },
       select: { priceCents: true },
     });
     const earnedCents = allCompletedBookings.reduce(
@@ -48,11 +56,11 @@ export async function GET() {
     );
 
     // Nur freigegebene Buchungen (für Verfügbar-Anzeige)
+    // Zählt: Admin freigegeben ODER Stunde vorbei + 14 Tage abgelaufen
     const releasedBookings = await prisma.booking.findMany({
       where: {
         teacherId: teacher.id,
         status: "paid",
-        end: { lt: now },
         OR: [
           { payoutAvailableAt: { lte: now } },
           { payoutAvailableAt: null, end: { lt: defaultCutoff } },
@@ -113,7 +121,6 @@ export async function POST() {
     const releasedFilter = {
       teacherId: teacher.id,
       status: "paid",
-      end: { lt: now },
       OR: [
         { payoutAvailableAt: { lte: now } },
         { payoutAvailableAt: null, end: { lt: defaultCutoff } },

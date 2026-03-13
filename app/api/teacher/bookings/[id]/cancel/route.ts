@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import prisma from "@/app/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import nodemailer from "nodemailer";
 import { logError } from "@/app/lib/logError";
 import { createStornobeleg } from "@/app/lib/invoiceUtils";
+import { sendStornobeleg } from "@/app/lib/mailer";
 
 export const runtime = "nodejs";
 
@@ -40,7 +40,7 @@ export async function POST(
       return NextResponse.json({ error: "Nur bezahlte Buchungen können storniert werden." }, { status: 400 });
     }
 
-    // Issue Stripe refund
+    // Stripe-Rückerstattung auslösen
     let refundId: string | null = null;
     if (booking.stripePaymentIntentId) {
       const refund = await stripe.refunds.create({
@@ -54,21 +54,28 @@ export async function POST(
       data: { status: "teacher_cancelled", stripeRefundId: refundId },
     });
 
-    // Stornobeleg für die Buchhaltung erstellen
-    await createStornobeleg(bookingId, refundId).catch(() => {});
+    // Stornobeleg erstellen und per E-Mail versenden
+    const stornobeleg = await createStornobeleg(bookingId, refundId).catch(() => null);
 
-    // Email student about cancellation and refund
-    if (booking.student?.email) {
-      sendMail(
-        booking.student.email,
-        "Dein Termin wurde abgesagt – Rückerstattung veranlasst",
-        `<h2>Dein Termin wurde abgesagt</h2>
-         <p>Hallo ${booking.student.name || ""},</p>
-         <p>Leider hat <b>${teacher.name}</b> deinen Termin am <b>${new Date(booking.start).toLocaleString("de-AT")}</b> abgesagt.</p>
-         <p>Der Betrag von <b>&euro;${(booking.priceCents / 100).toFixed(2)}</b> wird innerhalb von 5–10 Werktagen auf deine Karte zurückgebucht.</p>
-         <p>Wir entschuldigen uns für die Unannehmlichkeiten.</p>
-         <p>Viele Grüße,<br/>dein LernEasy-Team</p>`
-      ).catch(() => {});
+    if (stornobeleg && booking.student?.email) {
+      sendStornobeleg({
+        to:               booking.student.email,
+        invoiceNumber:    stornobeleg.invoiceNumber,
+        issuerName:       stornobeleg.issuerName,
+        issuerAddress:    stornobeleg.issuerAddress,
+        issuerUid:        stornobeleg.issuerUid,
+        studentName:      stornobeleg.studentName,
+        teacherName:      stornobeleg.teacherName,
+        subject:          stornobeleg.subject,
+        serviceDate:      stornobeleg.serviceDate,
+        serviceStartTime: stornobeleg.serviceStartTime,
+        serviceEndTime:   stornobeleg.serviceEndTime,
+        durationMinutes:  stornobeleg.durationMinutes,
+        priceCents:       stornobeleg.priceCents,
+        currency:         stornobeleg.currency,
+        stripeRefundId:   stornobeleg.stripeRefundId,
+        issuedAt:         stornobeleg.issuedAt,
+      }).catch(() => {});
     }
 
     return NextResponse.json({ ok: true, refundId });
@@ -76,14 +83,4 @@ export async function POST(
     logError("api/teacher/bookings/[id]/cancel POST", err).catch(() => {});
     return NextResponse.json({ error: "Serverfehler" }, { status: 500 });
   }
-}
-
-async function sendMail(to: string, subject: string, html: string) {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: true,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
-  await transporter.sendMail({ from: process.env.FROM_EMAIL, to, subject, html });
 }

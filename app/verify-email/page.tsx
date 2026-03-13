@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function VerifyEmailPage() {
@@ -14,11 +14,43 @@ export default function VerifyEmailPage() {
 
 function VerifyEmailContent() {
   const params  = useSearchParams();
+  const router  = useRouter();
+  const token   = params?.get("token");
   const success = params?.get("success");
   const error   = params?.get("error");
 
+  const [verifying, setVerifying] = useState(!!token);
   const [resendEmail, setResendEmail] = useState("");
   const [resendState, setResendState] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`/api/verify-email?token=${encodeURIComponent(token)}`)
+      .then((res) => {
+        if (res.redirected) {
+          // Follow the redirect URL manually
+          const url = new URL(res.url);
+          router.replace(url.pathname + url.search);
+        } else {
+          router.replace("/verify-email?error=server");
+        }
+      })
+      .catch(() => router.replace("/verify-email?error=server"))
+      .finally(() => setVerifying(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+          <div className="text-5xl mb-4">⏳</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Link wird überprüft…</h1>
+          <p className="text-gray-500">Bitte warte einen Moment.</p>
+        </div>
+      </div>
+    );
+  }
 
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();

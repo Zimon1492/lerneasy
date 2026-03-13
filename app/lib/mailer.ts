@@ -381,7 +381,7 @@ export async function sendVerificationEmail(to: string, name: string | null, tok
   const transporter = getMailer();
   const from        = process.env.FROM_EMAIL ?? process.env.MAIL_FROM;
   const baseUrl     = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
-  const link        = `${baseUrl}/api/verify-email?token=${token}`;
+  const link        = `${baseUrl}/verify-email?token=${token}`;
   const issuerName  = process.env.COMPANY_NAME ?? "LernEasy";
 
   const html = `<!DOCTYPE html>
